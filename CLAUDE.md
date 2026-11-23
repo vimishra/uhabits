@@ -37,6 +37,10 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    resumed). Paused days with no data become virtual SKIP entries in `Habit.recompute()`
    (not written to the DB). Reminders are suppressed in `ReminderController.onShowReminder`.
    UI: "Pause" row on the edit habit screen.
+4. **Loop-only zoom**: Settings → Zoom (`pref_ui_zoom`, 85–175%). `zoom/UiZoom.kt` scales the
+   density in each activity's `attachBaseContext` and recreates stale activities on resume.
+   Any new activity must override `attachBaseContext` with `UiZoom.wrap(this, newBase)`.
+   Widgets are not affected.
 
 Core model code: `uhabits-core/.../core/models/HabitAutomation.kt` (AutoSource, TargetChange,
 PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/main/migrations/27.sql`
@@ -45,9 +49,14 @@ PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/mai
 
 ## Status
 
-- The code was written without a compiler; the first build on this Mac is the first real compile.
-  Fix any compile errors in `build.log` first.
-- Not yet tested on device: permission flow, background sync, pause UI, target history.
+- Builds and runs on the Pixel. Verified on device: permission flow, Health Connect sync
+  (exercise, mindfulness, steps), zoom.
+- Not yet tested on device: pause UI, target history.
+- Background commands run one at a time (`Dispatchers.IO.limitedParallelism(1)` in
+  `HabitsApplicationComponent`); repositories share cached prepared statements, so don't
+  make them concurrent again.
+- Activity names in the manifest's `PARENT_ACTIVITY` must be fully qualified, because the
+  `.hc` applicationId suffix breaks relative names.
 
 ## Conventions
 
