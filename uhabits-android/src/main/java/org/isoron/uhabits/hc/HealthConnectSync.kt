@@ -13,6 +13,7 @@ package org.isoron.uhabits.hc
 import android.content.Context
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
@@ -23,6 +24,7 @@ import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import androidx.preference.PreferenceManager
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.models.AutoSource
@@ -54,11 +56,45 @@ object HealthConnectSync {
     val ALL_PERMISSIONS: Set<String> =
         READ_PERMISSIONS + HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND
 
+    /** Lets Health Connect return data older than 30 days before the first permission grant. */
+    const val HISTORY_PERMISSION = HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY
+
+    /** How far back the one-time backfill of each auto-tracked habit reaches. */
+    const val BACKFILL_DAYS = 365
+
+    private const val PREF_BACKFILLED = "hc_backfilled"
+    private const val PREF_HISTORY_ASKED = "hc_history_asked"
+
     fun isAvailable(context: Context): Boolean =
         HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
 
     fun client(context: Context): HealthConnectClient? =
         if (isAvailable(context)) HealthConnectClient.getOrCreate(context) else null
+
+    suspend fun isHistoryAvailable(context: Context): Boolean {
+        val client = client(context) ?: return false
+        return try {
+            client.features.getFeatureStatus(
+                HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY
+            ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * True the first time history access is available but not granted; records that it was
+     * asked, so the user is only prompted once.
+     */
+    suspend fun shouldAskForHistory(context: Context): Boolean {
+        val client = client(context) ?: return false
+        if (!isHistoryAvailable(context)) return false
+        if (HISTORY_PERMISSION in client.permissionController.getGrantedPermissions()) return false
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        if (prefs.getBoolean(PREF_HISTORY_ASKED, false)) return false
+        prefs.edit().putBoolean(PREF_HISTORY_ASKED, true).apply()
+        return true
+    }
 
     suspend fun missingPermissions(context: Context): Set<String> {
         val client = client(context) ?: return ALL_PERMISSIONS
@@ -116,16 +152,30 @@ object HealthConnectSync {
         }
         val component = (context.applicationContext as HabitsApplication).component
         val habits = component.habitList.filter { it.autoSource != AutoSource.NONE && !it.isArchived }
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val backfilled = prefs.getStringSet(PREF_BACKFILLED, emptySet())!!.toMutableSet()
+        val hasHistory = HISTORY_PERMISSION in granted
         var written = 0
         for (habit in habits) {
             val type = recordClass(habit.autoSource) ?: continue
             if (HealthPermission.getReadPermission(type) !in granted) continue
+            // Each habit gets one deep backfill per source/app/history-access combination;
+            // after that, the regular window is enough.
+            val marker = "${habit.id}:${habit.autoSource}:${habit.autoSourceApp}:$hasHistory"
+            val needsBackfill = marker !in backfilled
             try {
-                written += syncHabit(context, client, habit, days)
+                val window = if (needsBackfill) maxOf(days, BACKFILL_DAYS) else days
+                written += syncHabit(context, client, habit, window)
+                if (needsBackfill) {
+                    backfilled.removeAll { it.startsWith("${habit.id}:") }
+                    backfilled.add(marker)
+                    Log.i(TAG, "Backfilled ${habit.name} over $window days")
+                }
             } catch (e: Exception) {
                 Log.w(TAG, "Sync failed for habit ${habit.name}", e)
             }
         }
+        prefs.edit().putStringSet(PREF_BACKFILLED, backfilled).apply()
         return written
     }
 

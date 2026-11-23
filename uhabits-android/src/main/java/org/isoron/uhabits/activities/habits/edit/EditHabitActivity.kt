@@ -524,6 +524,10 @@ class EditHabitActivity : AppCompatActivity() {
                 requestHealthPermissions.launch(HealthConnectSync.ALL_PERMISSIONS)
                 return@launch
             }
+            if (HealthConnectSync.shouldAskForHistory(this@EditHabitActivity)) {
+                // Optional: lets the backfill reach further than 30 days before the first grant.
+                requestHealthPermissions.launch(setOf(HealthConnectSync.HISTORY_PERMISSION))
+            }
             if (changed) pickDefaultSourceApp(source)
         }
     }
