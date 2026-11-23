@@ -78,24 +78,36 @@ class RingTileView(context: Context) : View(context) {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
     }
-    private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
     private val rect = RectF()
 
     private val pad = dp(10f)
-    private val nameSize = sp(15f)
-    private val subSize = sp(12f)
+    private val nameSize = sp(17f)
+    private val subSize = sp(13f)
+    private val textBlock = nameSize * 1.35f + subSize * 1.5f
+
+    init {
+        // No card behind the ring: a borderless ripple shows the touch instead.
+        val tv = android.util.TypedValue()
+        context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true)
+        background = context.getDrawable(tv.resourceId)
+    }
+
+    /** Ring diameter and centre: ~80% of the space available, block centred in the cell. */
+    private fun ringGeometry(): Triple<Float, Float, Float> {
+        val w = width.toFloat()
+        val h = height.toFloat()
+        val diameter = 0.8f * min(w - 2 * pad, h - 2 * pad - textBlock)
+        val block = diameter + pad * 0.6f + textBlock
+        val top = (h - block) / 2
+        return Triple(w / 2, top + diameter / 2, diameter)
+    }
 
     override fun onDraw(canvas: Canvas) {
         val s = state ?: return
         val w = width.toFloat()
-        val h = height.toFloat()
-
-        bgPaint.color = sres.getColor(R.attr.cardBgColor)
-        rect.set(0f, 0f, w, h)
-        canvas.drawRoundRect(rect, dp(12f), dp(12f), bgPaint)
 
         val muted = sres.getColor(R.attr.contrast60)
         val color = when {
@@ -103,13 +115,9 @@ class RingTileView(context: Context) : View(context) {
             else -> currentTheme().color(s.color).toInt()
         }
 
-        // Text block at the bottom: name + streak line.
-        val textBlock = nameSize * 1.35f + subSize * 1.5f
-        val diameter = min(w - 2 * pad, h - 2 * pad - textBlock)
+        val (cx, cy, diameter) = ringGeometry()
         if (diameter <= 0) return
-        val stroke = diameter * 0.075f
-        val cx = w / 2
-        val cy = pad + diameter / 2
+        val stroke = diameter * 0.055f
         val r = diameter / 2 - stroke / 2
         rect.set(cx - r, cy - r, cx + r, cy + r)
 
@@ -132,10 +140,10 @@ class RingTileView(context: Context) : View(context) {
         val nameY = cy + diameter / 2 + pad * 0.6f + nameSize
         canvas.drawText(name.toString(), cx, nameY, textPaint)
 
-        // Streak / paused line.
+        // Streak / paused line. Grey is reserved for paused habits; streaks use the main text color.
         textPaint.typeface = AppFonts.regular
         textPaint.textSize = subSize
-        textPaint.color = muted
+        textPaint.color = if (s.paused) muted else sres.getColor(R.attr.contrast100)
         val sub = if (s.paused) {
             context.getString(R.string.ring_paused)
         } else {
@@ -161,14 +169,14 @@ class RingTileView(context: Context) : View(context) {
         if (s.isNumerical) {
             val value = (if (today > 0) today else 0) / 1000.0
             textPaint.typeface = AppFonts.bold
-            textPaint.textSize = diameter * 0.24f
+            textPaint.textSize = diameter * 0.30f
             textPaint.color = color
             canvas.drawText(value.toShortString(), cx, cy + textPaint.textSize * 0.2f, textPaint)
             textPaint.typeface = AppFonts.regular
             textPaint.textSize = min(diameter * 0.1f, sp(13f))
-            textPaint.color = muted
+            textPaint.color = sres.getColor(R.attr.contrast80)
             val goal = "/ ${s.targetValue.toShortString()} ${s.unit}".trim()
-            canvas.drawText(goal, cx, cy + diameter * 0.22f, textPaint)
+            canvas.drawText(goal, cx, cy + diameter * 0.25f, textPaint)
         } else {
             val (icon, iconColor) = when (today) {
                 Entry.YES_MANUAL, Entry.YES_AUTO -> context.getString(R.string.fa_check) to color
@@ -205,15 +213,26 @@ class RingTileView(context: Context) : View(context) {
         }
     }
 
+    private var lastTouchY = 0f
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
+        if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) lastTouchY = event.y
+        return super.onTouchEvent(event)
+    }
+
+    /** True when the last tap landed on the name / streak text below the ring. */
+    fun lastTouchWasOnText(): Boolean {
+        val (_, cy, diameter) = ringGeometry()
+        return lastTouchY > cy + diameter / 2 + pad * 0.3f
+    }
+
     /** Ring centre in screen coordinates, for confetti and the number popup. */
     fun ringCenterOnScreen(): Pair<Float, Float> {
         val loc = IntArray(2)
         getLocationOnScreen(loc)
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val textBlock = nameSize * 1.35f + subSize * 1.5f
-        val diameter = min(w - 2 * pad, h - 2 * pad - textBlock)
-        return (loc[0] + w / 2) to (loc[1] + pad + diameter / 2)
+        val (cx, cy, _) = ringGeometry()
+        return (loc[0] + cx) to (loc[1] + cy)
     }
 }
 
@@ -304,6 +323,11 @@ class RingPagerView(
 
     private fun onTap(tile: RingTileView) {
         val s = tile.state ?: return
+        // Tapping the name opens the habit, like tapping its name in the week list.
+        if (tile.lastTouchWasOnText()) {
+            behavior.onClickHabit(s.id)
+            return
+        }
         val (x, y) = tile.ringCenterOnScreen()
         val today = getToday()
         if (s.isNumerical) {
