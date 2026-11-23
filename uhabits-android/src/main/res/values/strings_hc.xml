@@ -33,7 +33,7 @@
     <string name="streak_paused_label" translatable="false">%d (Paused)</string>
     <string name="pause_hint" translatable="false">Paused days count as skipped: no reminders, no broken streaks. Anything you do log still counts.</string>
 
-    <string name="ui_zoom_title" translatable="false">Zoom</string>
+    <string name="ui_zoom_title" translatable="false">Habit details zoom</string>
     <string-array name="ui_zoom_entries" translatable="false">
         <item>85%</item>
         <item>100% (default)</item>

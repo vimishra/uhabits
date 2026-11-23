@@ -21,7 +21,6 @@ package org.isoron.uhabits.activities.habits.edit
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Typeface
@@ -78,7 +77,6 @@ import org.isoron.uhabits.utils.applyToolbarInsets
 import org.isoron.uhabits.utils.dismissCurrentAndShow
 import org.isoron.uhabits.utils.formatTime
 import org.isoron.uhabits.utils.toFormattedString
-import org.isoron.uhabits.zoom.UiZoom
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -93,10 +91,6 @@ fun formatFrequency(freqNum: Int, freqDen: Int, resources: Resources) = when {
 }
 
 class EditHabitActivity : AppCompatActivity() {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(UiZoom.wrap(this, newBase))
-    }
-
 
     private lateinit var themeSwitcher: AndroidThemeSwitcher
     private lateinit var binding: ActivityEditHabitBinding

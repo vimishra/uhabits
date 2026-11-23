@@ -18,11 +18,13 @@ import java.util.WeakHashMap
 import kotlin.math.roundToInt
 
 /**
- * App-only zoom. Scales the screen density for Loop's own activities, so text, icons, list rows
+ * Zoom for the habit details screen. Scales the screen density for that activity, so text, icons
  * and custom-drawn charts all grow together, without touching the system "Display size" setting.
+ * The habit list is deliberately left alone so it keeps showing a full week.
  *
- * Each activity calls [wrap] from attachBaseContext. [install] registers a lifecycle hook that
- * recreates an activity when it resumes with a zoom that no longer matches the preference.
+ * An activity opts in by calling [wrap] from attachBaseContext. [install] registers a lifecycle
+ * hook that recreates an activity when it resumes with a zoom that no longer matches the
+ * preference.
  */
 object UiZoom {
     const val PREF_KEY = "pref_ui_zoom"

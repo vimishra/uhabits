@@ -37,10 +37,10 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    resumed). Paused days with no data become virtual SKIP entries in `Habit.recompute()`
    (not written to the DB). Reminders are suppressed in `ReminderController.onShowReminder`.
    UI: "Pause" row on the edit habit screen.
-4. **Loop-only zoom**: Settings → Zoom (`pref_ui_zoom`, 85–175%). `zoom/UiZoom.kt` scales the
-   density in each activity's `attachBaseContext` and recreates stale activities on resume.
-   Any new activity must override `attachBaseContext` with `UiZoom.wrap(this, newBase)`.
-   Widgets are not affected.
+4. **Habit details zoom**: Settings → Habit details zoom (`pref_ui_zoom`, 85–175%). Applies only
+   to `ShowHabitActivity` (the list stays at 100% so a full week fits). `zoom/UiZoom.kt` scales
+   the density in `attachBaseContext` and recreates the screen on resume if the value changed.
+   Another screen opts in by overriding `attachBaseContext` with `UiZoom.wrap(this, newBase)`.
 
 Core model code: `uhabits-core/.../core/models/HabitAutomation.kt` (AutoSource, TargetChange,
 PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/main/migrations/27.sql`

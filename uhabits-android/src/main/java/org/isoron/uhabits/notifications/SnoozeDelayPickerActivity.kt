@@ -20,7 +20,6 @@ package org.isoron.uhabits.notifications
 
 import android.app.AlertDialog
 import android.content.ContentUris
-import android.content.Context
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
@@ -38,14 +37,9 @@ import org.isoron.uhabits.core.ui.views.DarkTheme
 import org.isoron.uhabits.core.ui.views.LightTheme
 import org.isoron.uhabits.receivers.ReminderController
 import org.isoron.uhabits.utils.SystemUtils
-import org.isoron.uhabits.zoom.UiZoom
 import java.util.Calendar
 
 class SnoozeDelayPickerActivity : FragmentActivity(), OnItemClickListener {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(UiZoom.wrap(this, newBase))
-    }
-
     private var habit: Habit? = null
     private var reminderController: ReminderController? = null
     private var dialog: AlertDialog? = null

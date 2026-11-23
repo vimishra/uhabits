@@ -19,24 +19,18 @@
 
 package org.isoron.uhabits.activities.intro
 
-import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.github.appintro.AppIntro2
 import com.github.appintro.AppIntroFragment
 import org.isoron.uhabits.R
-import org.isoron.uhabits.zoom.UiZoom
 
 /**
  * Activity that introduces the app to the user, shown only after the app is
  * launched for the first time.
  */
 class IntroActivity : AppIntro2() {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(UiZoom.wrap(this, newBase))
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -19,20 +19,14 @@
 
 package org.isoron.uhabits.automation
 
-import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.utils.applyRootViewInsets
-import org.isoron.uhabits.zoom.UiZoom
 
 class EditSettingActivity : AppCompatActivity() {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(UiZoom.wrap(this, newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = applicationContext as HabitsApplication

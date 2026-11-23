@@ -18,7 +18,6 @@
  */
 package org.isoron.uhabits.activities.settings
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
@@ -29,13 +28,8 @@ import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.databinding.SettingsActivityBinding
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.setupToolbar
-import org.isoron.uhabits.zoom.UiZoom
 
 class SettingsActivity : AppCompatActivity() {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(UiZoom.wrap(this, newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val component = (application as HabitsApplication).component
