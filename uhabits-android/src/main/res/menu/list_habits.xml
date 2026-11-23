@@ -30,6 +30,12 @@
 
     <group android:id="@+id/actionItems">
         <item
+            android:id="@+id/actionRingView"
+            android:icon="@drawable/ic_action_ring_view_dark"
+            android:title="@string/ring_view"
+            app:showAsAction="always"/>
+
+        <item
             android:id="@+id/actionCreateHabit"
             android:enabled="true"
             android:icon="?iconAdd"

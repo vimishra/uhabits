@@ -148,6 +148,10 @@ class HabitCardListAdapter(
         }
     }
 
+    /** Fork: habits in the order they appear in the list (used by the ring view). */
+    fun habitsInListOrder(): List<HabitCardState> =
+        rows.filterIsInstance<Row.Habit>().map { it.card }
+
     fun hasNoHabit(): Boolean {
         return state?.hasHabits == false
     }

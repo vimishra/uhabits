@@ -68,7 +68,9 @@ object ListHabitsPresenter {
                     completed = entries.map { it.completed },
                     notes = entries.map { it.notes },
                     category = habit.category,
-                    paused = habit.pauses.any { it.contains(today) }
+                    paused = habit.pauses.any { it.contains(today) },
+                    targetValue = habit.targetAt(today),
+                    currentStreak = habit.streaks.current(today)
                 )
             )
         }
@@ -97,5 +99,9 @@ data class HabitCardState(
     val notes: List<String>,
     val category: String,
     /** True when the habit is paused today. */
-    val paused: Boolean = false
+    val paused: Boolean = false,
+    /** Today's goal for numerical habits (respects goal history). */
+    val targetValue: Double = 0.0,
+    /** Length of the streak still alive today (see StreakList.current). */
+    val currentStreak: Int = 0
 )

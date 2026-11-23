@@ -79,6 +79,30 @@ class StreakListTest : BaseUnitTest() {
         assertEquals(3, best[0].length)
     }
 
+    @Test
+    fun testCurrent() {
+        habit.originalEntries.clear()
+        habit.pauses = emptyList()
+        // Done yesterday and the day before, not yet today: streak of 2 is still alive.
+        habit.originalEntries.add(Entry(today.minus(1), Entry.YES_MANUAL))
+        habit.originalEntries.add(Entry(today.minus(2), Entry.YES_MANUAL))
+        habit.recompute()
+        assertEquals(2, habit.streaks.current(today))
+        // Done today too: 3.
+        habit.originalEntries.add(Entry(today, Entry.YES_MANUAL))
+        habit.recompute()
+        assertEquals(3, habit.streaks.current(today))
+    }
+
+    @Test
+    fun testCurrent_brokenStreakIsZero() {
+        habit.originalEntries.clear()
+        habit.pauses = emptyList()
+        habit.originalEntries.add(Entry(today.minus(2), Entry.YES_MANUAL))
+        habit.recompute()
+        assertEquals(0, habit.streaks.current(today))
+    }
+
     private fun pausedHabit(vararg yesDaysAgo: Int, pause: PauseRange): Habit {
         habit.originalEntries.clear()
         for (d in yesDaysAgo) habit.originalEntries.add(Entry(today.minus(d), Entry.YES_MANUAL))

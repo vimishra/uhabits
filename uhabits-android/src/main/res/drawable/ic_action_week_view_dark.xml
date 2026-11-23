@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fork: toolbar toggle back to the week list (rows of habits). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:tint="#D8D9D9"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <group
+        android:translateX="4"
+        android:translateY="4">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M3,5h3v3H3zM8,5.5h13v2H8zM3,10.5h3v3H3zM8,11h13v2H8zM3,16h3v3H3zM8,16.5h13v2H8z" />
+    </group>
+</vector>

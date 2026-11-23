@@ -42,9 +42,12 @@ import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.screens.habits.list.HintPresenterFactory
+import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.isoron.uhabits.core.utils.MidnightTimer
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.inject.ActivityScope
+import org.isoron.uhabits.ring.RingMode
+import org.isoron.uhabits.ring.RingPagerView
 import org.isoron.uhabits.utils.addAtBottom
 import org.isoron.uhabits.utils.addAtTop
 import org.isoron.uhabits.utils.addBelow
@@ -68,7 +71,8 @@ class ListHabitsRootView(
     midnightTimer: MidnightTimer,
     runner: TaskRunner,
     private val listAdapter: HabitCardListAdapter,
-    habitCardListViewFactory: HabitCardListViewFactory
+    habitCardListViewFactory: HabitCardListViewFactory,
+    behavior: ListHabitsBehavior
 ) : FrameLayout(context), ModelObservable.Listener {
 
     val listView: HabitCardListView = habitCardListViewFactory.create()
@@ -80,6 +84,7 @@ class ListHabitsRootView(
     val progressBar = TaskProgressBar(context, runner)
     val hintView: HintView
     val header = HeaderView(context, preferences, midnightTimer)
+    val ringView = RingPagerView(context, listAdapter, behavior, preferences)
 
     init {
         val hints = resources.getStringArray(R.array.hints)
@@ -91,6 +96,7 @@ class ListHabitsRootView(
             addAtTop(tbar)
             addBelow(header, tbar)
             addBelow(listView, header, height = MATCH_PARENT)
+            addBelow(ringView, tbar, height = MATCH_PARENT)
             addBelow(llEmpty, header, height = MATCH_PARENT)
             addBelow(progressBar, header) {
                 it.topMargin = dp(-6.0f).toInt()
@@ -106,6 +112,22 @@ class ListHabitsRootView(
         )
         addView(rootView, MATCH_PARENT, MATCH_PARENT)
         listAdapter.setListView(listView)
+        applyRingMode()
+    }
+
+    /** Fork: show habits as rings (paged) instead of the week grid. */
+    val isRingMode: Boolean get() = RingMode.isOn(context)
+
+    fun setRingMode(on: Boolean) {
+        RingMode.set(context, on)
+        applyRingMode()
+    }
+
+    private fun applyRingMode() {
+        val ring = isRingMode
+        ringView.visibility = if (ring) VISIBLE else GONE
+        listView.visibility = if (ring) GONE else VISIBLE
+        header.visibility = if (ring) GONE else VISIBLE
     }
 
     override fun onModelChange() {

@@ -34,6 +34,14 @@ class StreakList {
         }.toList()
     }
 
+    /**
+     * Length of the streak that is still alive today: one that ends today, or yesterday when
+     * today hasn't been completed yet. Zero if there is none.
+     */
+    @Synchronized
+    fun current(today: LocalDate): Int =
+        list.firstOrNull { it.end == today || it.end == today.minus(1) }?.length ?: 0
+
     @Synchronized
     fun recompute(
         computedEntries: EntryList,

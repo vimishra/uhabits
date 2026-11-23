@@ -30,6 +30,11 @@
     <string name="pause_option_until_resumed" translatable="false">Until I resume</string>
     <string name="pause_option_pick_date" translatable="false">Until a date…</string>
     <string name="pause_option_resume" translatable="false">Resume now</string>
+    <string name="ring_view" translatable="false">Ring view</string>
+    <string name="week_view" translatable="false">Week view</string>
+    <string name="ring_streak" translatable="false">%d day streak</string>
+    <string name="ring_paused" translatable="false">Paused</string>
+    <string name="ring_page" translatable="false">Page %1$d of %2$d</string>
     <string name="streak_paused_label" translatable="false">%d (Paused)</string>
     <string name="pause_hint" translatable="false">Paused days count as skipped: no reminders, no broken streaks. Anything you do log still counts.</string>
 

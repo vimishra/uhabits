@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.BaseExceptionHandler
 import org.isoron.uhabits.HabitsApplication
+import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.AutoSource
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
@@ -158,11 +159,21 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
 
     override fun onCreateOptionsMenu(m: Menu): Boolean {
         menu.onCreate(menuInflater, m)
+        // Fork: the toggle shows the view you'd switch to.
+        m.findItem(R.id.actionRingView)?.apply {
+            val ring = rootView.isRingMode
+            setIcon(if (ring) R.drawable.ic_action_week_view_dark else R.drawable.ic_action_ring_view_dark)
+            title = getString(if (ring) R.string.week_view else R.string.ring_view)
+        }
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         invalidateOptionsMenu()
+        if (item.itemId == R.id.actionRingView) {
+            rootView.setRingMode(!rootView.isRingMode)
+            return true
+        }
         return menu.onItemSelected(item)
     }
 

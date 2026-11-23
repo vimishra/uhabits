@@ -66,7 +66,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(2, -1, -1),
                     completed = listOf(true, false, false),
                     notes = listOf("", "", ""),
-                    category = ""
+                    category = "",
+                    targetValue = 0.0,
+                    currentStreak = 1
                 ),
                 HabitCardState(
                     id = 1,
@@ -79,7 +81,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(-1, 2, -1),
                     completed = listOf(false, true, false),
                     notes = listOf("", "", ""),
-                    category = ""
+                    category = "",
+                    targetValue = 0.0,
+                    currentStreak = 1
                 ),
                 HabitCardState(
                     id = 0,
@@ -92,7 +96,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(2, -1, -1),
                     completed = listOf(true, false, false),
                     notes = listOf("", "", ""),
-                    category = ""
+                    category = "",
+                    targetValue = 0.0,
+                    currentStreak = 1
                 ),
                 HabitCardState(
                     id = 4,
@@ -105,7 +111,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(100, 200, -1),
                     completed = listOf(false, false, false),
                     notes = listOf("", "", ""),
-                    category = ""
+                    category = "",
+                    targetValue = 2.0,
+                    currentStreak = 0
                 ),
                 HabitCardState(
                     id = 5,
@@ -118,7 +126,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(-1, -1, -1),
                     completed = listOf(false, false, false),
                     notes = listOf("", "", ""),
-                    category = ""
+                    category = "",
+                    targetValue = 0.0,
+                    currentStreak = 0
                 ),
                 HabitCardState(
                     id = 6,
@@ -131,7 +141,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(-1, -1, -1),
                     completed = listOf(false, false, false),
                     notes = listOf("", "", ""),
-                    category = "Books"
+                    category = "Books",
+                    targetValue = 0.0,
+                    currentStreak = 0
                 ),
                 HabitCardState(
                     id = 7,
@@ -144,7 +156,9 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     checkmarks = listOf(-1, -1, -1),
                     completed = listOf(false, false, false),
                     notes = listOf("", "", ""),
-                    category = "Mind"
+                    category = "Mind",
+                    targetValue = 0.0,
+                    currentStreak = 0
                 )
             ),
             hasHabits = true,
