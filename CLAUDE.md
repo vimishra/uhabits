@@ -58,6 +58,16 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    list order, swipe/dots between pages (pref `pref_ring_page`). Tap = toggle or number popup via
    `ListHabitsBehavior`; long-press = habit screen. Data: `HabitCardListAdapter.habitsInListOrder()`,
    `HabitCardState.targetValue` / `currentStreak` (`StreakList.current`).
+   Style: no cards, ring ~34% of screen width, 5.5% line; names 17sp, streak 13sp in the main
+   text color (grey is reserved for paused). Tapping the name/streak opens the habit.
+7. **"Habit rings" widget**: `ring/RingsWidgetProvider.kt` + `layout/widget_rings.xml` (6 cells,
+   unused ones hidden) + `xml/widget_rings_info.xml` (`previewLayout` = sample habits). First 4
+   (2 x 2) or 6 (3 x 2, width >= 250dp) habits in list order via `ListHabitsPresenter`; rings
+   are bitmaps from `RingTileView(ringOnly = true)`. Ring tap = `toggleCheckmark` /
+   `showNumberPicker`; name tap = `showHabit`. Matches Loop's widgets (grey_850, 18dp corners,
+   widget opacity, `WidgetTheme` palette); colors pass through `liftForContrast` (>= 25%,
+   >= 40% for hues 220-300, then up to 4.5:1). Refreshed via a line in `WidgetUpdater`;
+   registered in the manifest. A widget can only be placed by the user, not via adb.
 
 Core model code: `uhabits-core/.../core/models/HabitAutomation.kt` (AutoSource, TargetChange,
 PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/main/migrations/27.sql`
@@ -68,8 +78,8 @@ PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/mai
 
 - Builds and runs on the Pixel. Verified on device: permission flow, Health Connect sync
   (exercise, mindfulness, steps), backfill, pause (dialog, skip days, streaks, indicators),
-  zoom, fonts, ring view.
-- Not yet tested on device: target history (raising a goal), ring-view taps.
+  zoom, fonts, ring view, rings widget (rendering).
+- Not yet tested on device: target history (raising a goal), ring-view and widget taps.
 - The phone is the user's daily device and is often locked or in another app. Before any
   `adb shell input`, check `dumpsys activity activities | grep topResumedActivity` shows
   `org.isoron.uhabits.hc`, in the same command as the tap.
