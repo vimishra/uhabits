@@ -22,6 +22,7 @@ package org.isoron.uhabits.widgets.activities
 import android.app.Activity
 import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
 import android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -33,6 +34,7 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
 import org.isoron.uhabits.core.preferences.WidgetPreferences
 import org.isoron.uhabits.widgets.WidgetUpdater
+import org.isoron.uhabits.zoom.UiZoom
 
 class BooleanHabitPickerDialog : HabitPickerDialog() {
     override fun shouldHideNumerical() = true
@@ -45,6 +47,9 @@ class NumericalHabitPickerDialog : HabitPickerDialog() {
 }
 
 open class HabitPickerDialog : Activity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(UiZoom.wrap(this, newBase))
+    }
 
     private var widgetId = 0
     private lateinit var widgetPreferences: WidgetPreferences

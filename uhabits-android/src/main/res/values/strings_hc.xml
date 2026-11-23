@@ -31,4 +31,22 @@
     <string name="pause_option_pick_date" translatable="false">Until a date…</string>
     <string name="pause_option_resume" translatable="false">Resume now</string>
     <string name="pause_hint" translatable="false">Paused days count as skipped: no reminders, no broken streaks. Anything you do log still counts.</string>
+
+    <string name="ui_zoom_title" translatable="false">Zoom</string>
+    <string-array name="ui_zoom_entries" translatable="false">
+        <item>85%</item>
+        <item>100% (default)</item>
+        <item>115%</item>
+        <item>130%</item>
+        <item>150%</item>
+        <item>175%</item>
+    </string-array>
+    <string-array name="ui_zoom_values" translatable="false">
+        <item>85</item>
+        <item>100</item>
+        <item>115</item>
+        <item>130</item>
+        <item>150</item>
+        <item>175</item>
+    </string-array>
 </resources>

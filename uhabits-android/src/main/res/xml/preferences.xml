@@ -84,6 +84,15 @@
                 app:iconSpaceReserved="false" />
 
         <ListPreference
+                android:defaultValue="100"
+                android:entries="@array/ui_zoom_entries"
+                android:entryValues="@array/ui_zoom_values"
+                android:key="pref_ui_zoom"
+                android:summary="%s"
+                android:title="@string/ui_zoom_title"
+                app:iconSpaceReserved="false" />
+
+        <ListPreference
                 android:key="pref_first_weekday"
                 android:title="@string/first_day_of_the_week"
                 app:iconSpaceReserved="false" />

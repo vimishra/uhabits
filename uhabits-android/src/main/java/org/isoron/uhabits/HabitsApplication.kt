@@ -32,6 +32,7 @@ import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.DatabaseUtils
 import org.isoron.uhabits.widgets.WidgetUpdater
+import org.isoron.uhabits.zoom.UiZoom
 import java.io.File
 
 /**
@@ -47,6 +48,7 @@ class HabitsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         context = this
+        UiZoom.install(this)
 
         if (isTestMode()) {
             val db = DatabaseUtils.getDatabaseFile(context)

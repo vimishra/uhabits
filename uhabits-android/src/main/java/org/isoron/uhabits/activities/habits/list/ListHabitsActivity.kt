@@ -20,6 +20,7 @@
 package org.isoron.uhabits.activities.habits.list
 
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
@@ -48,8 +49,13 @@ import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.restartWithFade
+import org.isoron.uhabits.zoom.UiZoom
 
 class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(UiZoom.wrap(this, newBase))
+    }
+
 
     var pureBlack: Boolean = false
     lateinit var appComponent: HabitsApplicationComponent

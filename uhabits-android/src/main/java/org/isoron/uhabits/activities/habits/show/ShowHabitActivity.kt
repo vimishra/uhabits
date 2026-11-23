@@ -19,6 +19,7 @@
 package org.isoron.uhabits.activities.habits.show
 
 import android.content.ContentUris
+import android.content.Context
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.Menu
@@ -57,8 +58,13 @@ import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.showMessage
 import org.isoron.uhabits.utils.showSendFileScreen
 import org.isoron.uhabits.widgets.WidgetUpdater
+import org.isoron.uhabits.zoom.UiZoom
 
 class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(UiZoom.wrap(this, newBase))
+    }
+
 
     private lateinit var commandRunner: CommandRunner
     private lateinit var menu: ShowHabitMenu

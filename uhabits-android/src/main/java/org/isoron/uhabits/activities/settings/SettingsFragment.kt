@@ -53,6 +53,7 @@ import org.isoron.uhabits.utils.StyledResources
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.startActivitySafely
 import org.isoron.uhabits.widgets.WidgetUpdater
+import org.isoron.uhabits.zoom.UiZoom
 import java.util.Locale
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
@@ -189,6 +190,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             Log.d("SettingsFragment", "updating widgets")
             widgetUpdater!!.updateWidgets()
         }
+        if (key == UiZoom.PREF_KEY) requireActivity().recreate()
         BackupManager.dataChanged("org.isoron.uhabits")
         updateWeekdayPreference()
     }

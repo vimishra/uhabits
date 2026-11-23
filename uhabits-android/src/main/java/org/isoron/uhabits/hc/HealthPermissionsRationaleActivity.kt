@@ -8,16 +8,22 @@
  */
 package org.isoron.uhabits.hc
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.isoron.uhabits.R
+import org.isoron.uhabits.zoom.UiZoom
 
 /**
  * Shown by Health Connect when the user asks why this app wants health data.
  */
 class HealthPermissionsRationaleActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(UiZoom.wrap(this, newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val padding = (24 * resources.displayMetrics.density).toInt()
