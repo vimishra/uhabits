@@ -30,6 +30,7 @@ import org.isoron.platform.time.JavaLocalDateFormatter
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Streak
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.StyledResources
@@ -223,6 +224,7 @@ class StreakChart : View {
 
     private fun initPaints() {
         paint = Paint()
+        paint!!.typeface = AppFonts.regular
         paint!!.textAlign = Paint.Align.CENTER
         paint!!.isAntiAlias = true
     }

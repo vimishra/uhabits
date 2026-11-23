@@ -28,6 +28,7 @@ import android.view.View
 import android.view.ViewGroup
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.habits.list.views.toShortString
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.StyledResources
@@ -166,6 +167,7 @@ class TargetChart : View {
 
     private fun init() {
         paint = Paint()
+        paint!!.typeface = AppFonts.regular
         paint!!.textAlign = Paint.Align.CENTER
         paint!!.isAntiAlias = true
         val res = StyledResources(context)

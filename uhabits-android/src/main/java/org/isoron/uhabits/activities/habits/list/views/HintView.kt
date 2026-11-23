@@ -23,7 +23,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.graphics.Color.WHITE
-import android.graphics.Typeface
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
@@ -31,6 +30,7 @@ import android.widget.TextView
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.ui.screens.habits.list.HintPresenter
 import org.isoron.uhabits.core.ui.screens.habits.list.HintViewState
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.dp
 
 class HintView(
@@ -51,7 +51,7 @@ class HintView(
 
         val hintTitle = TextView(context).apply {
             setTextColor(WHITE)
-            setTypeface(null, Typeface.BOLD)
+            typeface = AppFonts.bold
             text = resources.getString(R.string.hint_title)
         }
 

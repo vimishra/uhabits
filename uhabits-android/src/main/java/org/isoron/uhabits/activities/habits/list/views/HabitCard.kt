@@ -42,6 +42,7 @@ import org.isoron.platform.time.getToday
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.RingView
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardState
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.currentTheme
 import org.isoron.uhabits.utils.dp
@@ -135,6 +136,7 @@ class HabitCardView(
         }
 
         label = TextView(context).apply {
+            typeface = AppFonts.medium
             maxLines = 2
             ellipsize = TextUtils.TruncateAt.END
             layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)

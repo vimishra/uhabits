@@ -32,6 +32,7 @@ import me.tatarka.inject.annotations.Inject
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.inject.ActivityContext
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.dim
@@ -48,8 +49,8 @@ data class NumberButtonState(
     val notes: String
 )
 
-private val BOLD_TYPEFACE = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-private val NORMAL_TYPEFACE = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+private val BOLD_TYPEFACE get() = AppFonts.condensedBold
+private val NORMAL_TYPEFACE get() = AppFonts.condensed
 
 fun Double.toShortString(): String = when {
     this >= 1e9 -> String.format("%.1fG", this / 1e9)

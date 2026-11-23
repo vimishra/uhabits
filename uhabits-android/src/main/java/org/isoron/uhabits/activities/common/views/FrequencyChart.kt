@@ -30,6 +30,7 @@ import org.isoron.platform.time.countWeekdayOccurrencesInMonth
 import org.isoron.platform.time.getToday
 import org.isoron.platform.time.getWeekdaySequence
 import org.isoron.uhabits.R
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.ColorUtils.mixColors
 import org.isoron.uhabits.utils.StyledResources
 import java.util.Locale
@@ -109,8 +110,10 @@ class FrequencyChart : ScrollableChart {
 
     private fun initPaints() {
         pText = Paint()
+        pText!!.typeface = AppFonts.regular
         pText!!.isAntiAlias = true
         pGraph = Paint()
+        pGraph!!.typeface = AppFonts.regular
         pGraph!!.textAlign = Paint.Align.CENTER
         pGraph!!.isAntiAlias = true
         pGrid = Paint()

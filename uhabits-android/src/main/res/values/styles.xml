@@ -19,6 +19,9 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="AppBaseTheme" parent="@style/Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
+        <item name="toolbarStyle">@style/HcToolbar</item>
         <item name="aboutScreenColor">@color/blue_800</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
         <item name="actionModeBackground">@color/grey_700</item>
@@ -68,6 +71,9 @@
     </style>
 
     <style name="AppBaseThemeDark" parent="@style/Theme.MaterialComponents.NoActionBar">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
+        <item name="toolbarStyle">@style/HcToolbar</item>
         <item name="aboutScreenColor">@color/blue_300</item>
         <item name="actionModeBackground">@color/grey_800</item>
         <item name="android:alertDialogTheme">@style/Theme.AppCompat.Dialog</item>
@@ -138,6 +144,8 @@
     </style>
 
     <style name="BaseDialog" parent="Theme.AppCompat.Light.Dialog">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
         <item name="contrast0">@color/white</item>
         <item name="contrast20">@color/grey_300</item>
         <item name="contrast40">@color/grey_350</item>
@@ -149,6 +157,8 @@
     </style>
 
     <style name="BaseDialogDark" parent="Theme.AppCompat.Dialog">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
         <item name="contrast0">@color/grey_900</item>
         <item name="contrast20">@color/grey_800</item>
         <item name="contrast40">@color/grey_750</item>
@@ -217,6 +227,8 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginBottom">12dp</item>
         <item name="android:textSize">@dimen/regularTextSize</item>
+        <!-- Fork: semibold section headings. -->
+        <item name="android:textFontWeight">600</item>
     </style>
 
     <style name="About" />
@@ -244,6 +256,23 @@
         <item name="android:background">@drawable/ripple_transparent</item>
     </style>
 
+    <!-- Fork: toolbar titles set their own font, so give them the Pixel font explicitly. -->
+    <style name="HcToolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="titleTextAppearance">@style/HcToolbarTitle</item>
+        <item name="subtitleTextAppearance">@style/HcToolbarSubtitle</item>
+    </style>
+
+    <style name="HcToolbarTitle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:fontFamily">google-sans-flex</item>
+        <item name="android:textFontWeight">600</item>
+    </style>
+
+    <style name="HcToolbarSubtitle" parent="TextAppearance.Widget.AppCompat.Toolbar.Subtitle">
+        <item name="android:fontFamily">google-sans-flex</item>
+        <!-- Fork: the only subtitle is the "Paused until" line, so give it some weight. -->
+        <item name="android:textFontWeight">500</item>
+    </style>
+
     <style name="Toolbar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -256,11 +285,15 @@
     </style>
 
     <style name="DialogWithTitle" parent="@style/Theme.AppCompat.Light.Dialog">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
         <item name="windowNoTitle">false</item>
     </style>
 
     <style name="DarkDialogWithTitle"
            parent="@style/Theme.AppCompat.Dialog">
+        <!-- Fork: Pixel system font (falls back to Roboto elsewhere). -->
+        <item name="android:fontFamily">google-sans-flex</item>
         <item name="windowNoTitle">false</item>
     </style>
 

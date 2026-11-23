@@ -24,7 +24,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.text.TextPaint
 import android.view.View.MeasureSpec.EXACTLY
 import org.isoron.platform.time.JavaLocalDateFormatter
@@ -33,6 +32,7 @@ import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.common.views.ScrollableChart
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.utils.MidnightTimer
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.dim
 import org.isoron.uhabits.utils.dp
 import org.isoron.uhabits.utils.isRTL
@@ -116,7 +116,7 @@ class HeaderView(
             isAntiAlias = true
             textSize = dim(R.dimen.tinyTextSize)
             textAlign = Paint.Align.CENTER
-            typeface = Typeface.DEFAULT_BOLD
+            typeface = AppFonts.bold
             color = sres.getColor(R.attr.contrast60)
         }
 

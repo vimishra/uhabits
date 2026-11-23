@@ -30,6 +30,7 @@ import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import org.isoron.uhabits.R
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.AttributeSetUtils.getAttribute
 import org.isoron.uhabits.utils.AttributeSetUtils.getBooleanAttribute
 import org.isoron.uhabits.utils.AttributeSetUtils.getColorAttribute
@@ -198,6 +199,7 @@ class RingView : View {
 
     private fun init() {
         pRing = TextPaint()
+        pRing!!.typeface = AppFonts.regular
         pRing!!.isAntiAlias = true
         pRing!!.color = color
         pRing!!.textAlign = Paint.Align.CENTER

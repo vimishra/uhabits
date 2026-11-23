@@ -32,6 +32,7 @@ import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Score
+import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.StyledResources
@@ -336,8 +337,10 @@ class ScoreChart : ScrollableChart {
 
     private fun initPaints() {
         pText = Paint()
+        pText!!.typeface = AppFonts.regular
         pText!!.isAntiAlias = true
         pGraph = Paint()
+        pGraph!!.typeface = AppFonts.regular
         pGraph!!.textAlign = Paint.Align.CENTER
         pGraph!!.isAntiAlias = true
         pGrid = Paint()
