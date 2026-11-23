@@ -75,14 +75,17 @@ class HabitCardView(
         state = newState
         val r = newState.record
         val c = getActiveColor(r)
+        // Fork: a paused habit's name and ring are greyed out; its checkmarks keep their color,
+        // since anything logged during a pause still counts.
+        val nameColor = if (r.paused) sres.getColor(R.attr.contrast60) else c
         label.apply {
             text = r.name
-            setTextColor(c)
+            setTextColor(nameColor)
         }
         scoreRing.apply {
             setPercentage(r.score.toFloat())
             setPrecision(1.0f / 16)
-            setColor(c)
+            setColor(nameColor)
         }
         checkmarkPanel.visibility = when (r.isNumerical) {
             true -> View.GONE

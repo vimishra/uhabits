@@ -96,6 +96,14 @@ class StreakListTest : BaseUnitTest() {
         assertEquals(today.minus(2), best[0].start)
         assertEquals(today, best[0].end)
         assertEquals(2, best[0].length)
+        assertEquals(true, best[0].pausedNow)
+    }
+
+    @Test
+    fun testGetBest_pausedNowOnlyWhilePausedToday() {
+        // Pause ended yesterday; done today: the streak is no longer "paused now".
+        pausedHabit(3, 0, pause = PauseRange(today.minus(2), today.minus(1)))
+        assertEquals(false, habit.streaks.getBest(10)[0].pausedNow)
     }
 
     @Test

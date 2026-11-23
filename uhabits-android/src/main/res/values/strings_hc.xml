@@ -30,6 +30,7 @@
     <string name="pause_option_until_resumed" translatable="false">Until I resume</string>
     <string name="pause_option_pick_date" translatable="false">Until a date…</string>
     <string name="pause_option_resume" translatable="false">Resume now</string>
+    <string name="streak_paused_label" translatable="false">%d (Paused)</string>
     <string name="pause_hint" translatable="false">Paused days count as skipped: no reminders, no broken streaks. Anything you do log still counts.</string>
 
     <string name="ui_zoom_title" translatable="false">Zoom</string>

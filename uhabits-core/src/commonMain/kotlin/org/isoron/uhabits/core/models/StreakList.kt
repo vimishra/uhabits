@@ -61,11 +61,11 @@ class StreakList {
             if (current.date == run.last().date.minus(1)) {
                 run.add(current)
             } else {
-                addRun(run, isPaused)
+                addRun(run, isPaused, today)
                 run = mutableListOf(current)
             }
         }
-        addRun(run, isPaused)
+        addRun(run, isPaused, today)
     }
 
     /**
@@ -73,11 +73,19 @@ class StreakList {
      * but don't count towards its length; a streak can't begin with them, and a run made only of
      * paused days isn't a streak.
      */
-    private fun addRun(run: List<Entry>, isPaused: (LocalDate) -> Boolean) {
+    private fun addRun(run: List<Entry>, isPaused: (LocalDate) -> Boolean, today: LocalDate) {
         fun pausedSkip(e: Entry) = e.value == Entry.SKIP && isPaused(e.date)
         val oldestReal = run.indexOfLast { !pausedSkip(it) }
         if (oldestReal < 0) return
         val kept = run.subList(0, oldestReal + 1)
-        list.add(Streak(kept.last().date, kept.first().date, kept.count { pausedSkip(it) }))
+        val newest = kept.first().date
+        list.add(
+            Streak(
+                start = kept.last().date,
+                end = newest,
+                paused = kept.count { pausedSkip(it) },
+                pausedNow = newest == today && isPaused(today)
+            )
+        )
     }
 }

@@ -19,10 +19,12 @@
 
 package org.isoron.uhabits.core.ui.screens.habits.show
 
+import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.PauseRange
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.screens.habits.show.views.BarCardPresenter
 import org.isoron.uhabits.core.ui.screens.habits.show.views.BarCardState
@@ -57,7 +59,9 @@ data class ShowHabitState(
     val frequency: FrequencyCardState,
     val history: HistoryCardState,
     val bar: BarCardState,
-    val theme: Theme
+    val theme: Theme,
+    /** The pause covering today, if the habit is paused right now. */
+    val currentPause: PauseRange? = null
 )
 
 class ShowHabitPresenter(
@@ -93,6 +97,7 @@ class ShowHabitPresenter(
         ): ShowHabitState {
             return ShowHabitState(
                 title = habit.name,
+                currentPause = habit.pauses.firstOrNull { it.contains(getToday()) },
                 color = habit.color,
                 isNumerical = habit.isNumerical,
                 theme = theme,

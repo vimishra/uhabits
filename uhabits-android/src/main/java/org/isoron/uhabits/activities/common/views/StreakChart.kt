@@ -151,7 +151,8 @@ class StreakChart : View {
         var availableWidth = internalWidth - 2 * maxLabelWidth
         if (shouldShowLabels) availableWidth -= 2 * textMargin
         var barWidth = percentage * availableWidth
-        val minBarWidth = paint!!.measureText(streak.length.toLong().toString()) + em
+        val label = barLabel(streak)
+        val minBarWidth = paint!!.measureText(label) + em
         barWidth = max(barWidth, minBarWidth)
         val gap = (internalWidth - barWidth) / 2
         val paddingTopBottom = baseSize * 0.05f
@@ -170,7 +171,7 @@ class StreakChart : View {
         paint!!.color = percentageToTextColor(percentage)
         paint!!.textAlign = Paint.Align.CENTER
         canvas.drawText(
-            streak.length.toLong().toString(),
+            label,
             rect.centerX(),
             yOffset,
             paint!!
@@ -186,6 +187,14 @@ class StreakChart : View {
             canvas.drawText(endLabel, internalWidth - gap + textMargin, yOffset, paint!!)
         }
     }
+
+    /** Streak length, plus "(Paused)" while the habit is paused today. */
+    private fun barLabel(streak: Streak): String =
+        if (streak.pausedNow) {
+            context.getString(R.string.streak_paused_label, streak.length)
+        } else {
+            streak.length.toLong().toString()
+        }
 
     private fun init() {
         initPaints()

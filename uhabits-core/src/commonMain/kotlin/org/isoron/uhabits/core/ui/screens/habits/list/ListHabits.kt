@@ -67,7 +67,8 @@ object ListHabitsPresenter {
                     checkmarks = entries.map { it.value },
                     completed = entries.map { it.completed },
                     notes = entries.map { it.notes },
-                    category = habit.category
+                    category = habit.category,
+                    paused = habit.pauses.any { it.contains(today) }
                 )
             )
         }
@@ -94,5 +95,7 @@ data class HabitCardState(
     val checkmarks: List<Int>,
     val completed: List<Boolean>,
     val notes: List<String>,
-    val category: String
+    val category: String,
+    /** True when the habit is paused today. */
+    val paused: Boolean = false
 )

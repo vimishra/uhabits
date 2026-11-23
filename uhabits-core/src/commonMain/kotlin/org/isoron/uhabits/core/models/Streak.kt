@@ -24,7 +24,9 @@ data class Streak(
     val start: LocalDate,
     val end: LocalDate,
     /** Paused days inside the streak: they keep it alive but don't add to its length. */
-    val paused: Int = 0
+    val paused: Int = 0,
+    /** True when the streak reaches today and the habit is paused today. */
+    val pausedNow: Boolean = false
 ) {
     fun compareLonger(other: Streak): Int {
         return if (length != other.length) {

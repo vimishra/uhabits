@@ -20,14 +20,18 @@
 package org.isoron.uhabits.activities.habits.show
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.widget.FrameLayout
+import org.isoron.uhabits.R
 import org.isoron.uhabits.core.ui.screens.habits.show.ShowHabitPresenter
 import org.isoron.uhabits.core.ui.screens.habits.show.ShowHabitState
 import org.isoron.uhabits.databinding.ShowHabitBinding
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyToolbarInsets
 import org.isoron.uhabits.utils.setupToolbar
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class ShowHabitView(context: Context) : FrameLayout(context) {
     private val binding = ShowHabitBinding.inflate(LayoutInflater.from(context))
@@ -44,6 +48,18 @@ class ShowHabitView(context: Context) : FrameLayout(context) {
             color = data.color,
             theme = data.theme
         )
+        // Fork: make a current pause obvious right under the habit name.
+        binding.toolbar.subtitle = data.currentPause?.let { pause ->
+            val end = pause.end
+            if (end == null) {
+                context.getString(R.string.pause_until_resumed)
+            } else {
+                val date = java.time.LocalDate.of(end.year, end.month, end.day)
+                    .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+                context.getString(R.string.pause_until_date, date)
+            }
+        }
+        binding.toolbar.setSubtitleTextColor(Color.WHITE)
         binding.subtitleCard.setState(data.subtitle)
         binding.overviewCard.setState(data.overview)
         binding.notesCard.setState(data.notes)
