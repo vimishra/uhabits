@@ -20,6 +20,7 @@
 package org.isoron.uhabits.activities.habits.edit
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.os.Bundle
@@ -32,9 +33,17 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
+import androidx.health.connect.client.PermissionController
 import com.android.datetimepicker.time.RadialPickerLayout
 import com.android.datetimepicker.time.TimePickerDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.isoron.platform.gui.toInt
+import org.isoron.platform.time.LocalDate
+import org.isoron.platform.time.getToday
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.AndroidThemeSwitcher
@@ -44,20 +53,28 @@ import org.isoron.uhabits.activities.common.dialogs.WeekdayPickerDialog
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateHabitCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
+import org.isoron.uhabits.core.models.AutoSource
 import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitAutomationCodec
 import org.isoron.uhabits.core.models.HabitType
 import org.isoron.uhabits.core.models.NumericalHabitType
 import org.isoron.uhabits.core.models.PaletteColor
+import org.isoron.uhabits.core.models.PauseLogic
+import org.isoron.uhabits.core.models.PauseRange
 import org.isoron.uhabits.core.models.Reminder
 import org.isoron.uhabits.core.models.WeekdayList
 import org.isoron.uhabits.databinding.ActivityEditHabitBinding
+import org.isoron.uhabits.hc.HealthConnectSync
+import org.isoron.uhabits.hc.HealthSyncWorker
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.applyToolbarInsets
 import org.isoron.uhabits.utils.dismissCurrentAndShow
 import org.isoron.uhabits.utils.formatTime
 import org.isoron.uhabits.utils.toFormattedString
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 fun formatFrequency(freqNum: Int, freqDen: Int, resources: Resources) = when {
     freqNum == 1 && (freqDen == 30 || freqDen == 31) -> resources.getString(R.string.every_month)
@@ -86,6 +103,22 @@ class EditHabitActivity : AppCompatActivity() {
     var reminderMin = -1
     var reminderDays: WeekdayList = WeekdayList.EVERY_DAY
     var targetType = NumericalHabitType.AT_LEAST
+    var autoSource = AutoSource.NONE
+    var autoSourceApp = ""
+    var pauses: List<PauseRange> = emptyList()
+
+    private val uiScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private val requestHealthPermissions = registerForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (!granted.containsAll(HealthConnectSync.READ_PERMISSIONS)) {
+            AlertDialog.Builder(this)
+                .setMessage(R.string.hc_permission_denied)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+    }
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -120,6 +153,9 @@ class EditHabitActivity : AppCompatActivity() {
             binding.categoryInput.setText(habit.category)
             binding.unitInput.setText(habit.unit)
             binding.targetInput.setText(habit.targetValue.toString())
+            autoSource = habit.autoSource
+            autoSourceApp = habit.autoSourceApp
+            pauses = habit.pauses
         } else {
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
@@ -133,6 +169,9 @@ class EditHabitActivity : AppCompatActivity() {
             reminderHour = state.getInt("reminderHour")
             reminderMin = state.getInt("reminderMin")
             reminderDays = WeekdayList(state.getInt("reminderDays"))
+            autoSource = AutoSource.fromKey(state.getString("autoSource"))
+            autoSourceApp = state.getString("autoSourceApp") ?: ""
+            pauses = HabitAutomationCodec.decodePauses(state.getString("pauses"))
         }
 
         updateColors()
@@ -142,6 +181,7 @@ class EditHabitActivity : AppCompatActivity() {
                 binding.unitOuterBox.visibility = View.GONE
                 binding.targetOuterBox.visibility = View.GONE
                 binding.targetTypeOuterBox.visibility = View.GONE
+                binding.autoTrackOuterBox.visibility = View.GONE
             }
             HabitType.NUMERICAL -> {
                 binding.nameInput.hint = getString(R.string.measurable_short_example)
@@ -211,6 +251,13 @@ class EditHabitActivity : AppCompatActivity() {
             }
             builder.show()
         }
+
+        populateAutoSource()
+        binding.autoSourcePicker.setOnClickListener { showAutoSourcePicker() }
+        binding.autoSourceAppPicker.setOnClickListener { showAutoSourceAppPicker() }
+
+        populatePause()
+        binding.pausePicker.setOnClickListener { showPausePicker() }
 
         populateReminder()
         binding.reminderTimePicker.setOnClickListener {
@@ -284,10 +331,22 @@ class EditHabitActivity : AppCompatActivity() {
 
         habit.frequency = Frequency(freqNum, freqDen)
         if (habitType == HabitType.NUMERICAL) {
-            habit.targetValue = binding.targetInput.text.toString().toDouble()
+            val newTarget = binding.targetInput.text.toString().toDouble()
+            if (original != null) {
+                // Keep earlier days judged against the goal that was in effect back then.
+                habit.changeTarget(newTarget, getToday())
+            } else {
+                habit.targetValue = newTarget
+            }
             habit.targetType = targetType
             habit.unit = binding.unitInput.text.trim().toString()
+            habit.autoSource = autoSource
+            habit.autoSourceApp = if (autoSource == AutoSource.NONE) "" else autoSourceApp
+        } else {
+            habit.autoSource = AutoSource.NONE
+            habit.autoSourceApp = ""
         }
+        habit.pauses = pauses
         habit.type = habitType
 
         val command = if (habitId >= 0) {
@@ -304,6 +363,9 @@ class EditHabitActivity : AppCompatActivity() {
             )
         }
         component.commandRunner.run(command)
+        if (habit.autoSource != AutoSource.NONE) {
+            HealthSyncWorker.syncNow(applicationContext, days = 30)
+        }
         finish()
     }
 
@@ -380,6 +442,194 @@ class EditHabitActivity : AppCompatActivity() {
             putInt("reminderHour", reminderHour)
             putInt("reminderMin", reminderMin)
             putInt("reminderDays", reminderDays.toInteger())
+            putString("autoSource", autoSource.key)
+            putString("autoSourceApp", autoSourceApp)
+            putString("pauses", HabitAutomationCodec.encodePauses(pauses))
         }
+    }
+
+    override fun onDestroy() {
+        uiScope.cancel()
+        super.onDestroy()
+    }
+
+    // ---- Auto-tracking (Health Connect) ----
+
+    private fun sourceLabel(source: AutoSource): String = getString(
+        when (source) {
+            AutoSource.NONE -> R.string.hc_source_none
+            AutoSource.EXERCISE -> R.string.hc_source_exercise
+            AutoSource.MINDFULNESS -> R.string.hc_source_mindfulness
+            AutoSource.STEPS -> R.string.hc_source_steps
+        }
+    )
+
+    private fun anyAppLabel(source: AutoSource): String = getString(
+        if (source == AutoSource.STEPS) R.string.hc_source_app_any else R.string.hc_source_app_any_sessions
+    )
+
+    private fun populateAutoSource() {
+        binding.autoSourcePicker.text = sourceLabel(autoSource)
+        val showApp = autoSource != AutoSource.NONE
+        binding.autoSourceDivider.visibility = if (showApp) View.VISIBLE else View.GONE
+        binding.autoSourceAppPicker.visibility = if (showApp) View.VISIBLE else View.GONE
+        binding.autoSourceAppPicker.text = if (autoSourceApp.isBlank()) {
+            anyAppLabel(autoSource)
+        } else {
+            getString(R.string.hc_source_app_format, HealthConnectSync.appLabel(this, autoSourceApp))
+        }
+    }
+
+    private fun showAutoSourcePicker() {
+        val options = AutoSource.entries.toList()
+        AlertDialog.Builder(this)
+            .setItems(options.map { sourceLabel(it) }.toTypedArray()) { dialog, which ->
+                dialog.dismiss()
+                onAutoSourcePicked(options[which])
+            }
+            .show()
+    }
+
+    private fun onAutoSourcePicked(source: AutoSource) {
+        if (source != AutoSource.NONE && !HealthConnectSync.isAvailable(this)) {
+            AlertDialog.Builder(this)
+                .setMessage(R.string.hc_unavailable)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+            return
+        }
+        val changed = source != autoSource
+        autoSource = source
+        if (changed) autoSourceApp = ""
+        if (binding.unitInput.text.isBlank()) {
+            when (source) {
+                AutoSource.EXERCISE, AutoSource.MINDFULNESS ->
+                    binding.unitInput.setText(R.string.hc_unit_minutes)
+                AutoSource.STEPS -> binding.unitInput.setText(R.string.hc_unit_steps)
+                AutoSource.NONE -> Unit
+            }
+        }
+        populateAutoSource()
+        if (source == AutoSource.NONE) return
+
+        uiScope.launch {
+            val missing = HealthConnectSync.missingPermissions(this@EditHabitActivity)
+            if (missing.isNotEmpty()) {
+                requestHealthPermissions.launch(HealthConnectSync.ALL_PERMISSIONS)
+                return@launch
+            }
+            if (changed) pickDefaultSourceApp(source)
+        }
+    }
+
+    /** Exercise defaults to Garmin Connect; mindfulness to the app that logs it most. */
+    private suspend fun pickDefaultSourceApp(source: AutoSource) {
+        val apps = HealthConnectSync.listSourceApps(this, source)
+        autoSourceApp = when (source) {
+            AutoSource.EXERCISE ->
+                if (HealthConnectSync.GARMIN_PACKAGE in apps) HealthConnectSync.GARMIN_PACKAGE else ""
+            AutoSource.MINDFULNESS -> apps.firstOrNull() ?: ""
+            else -> ""
+        }
+        populateAutoSource()
+    }
+
+    private fun showAutoSourceAppPicker() {
+        val source = autoSource
+        uiScope.launch {
+            val missing = HealthConnectSync.missingPermissions(this@EditHabitActivity)
+            if (missing.any { it in HealthConnectSync.READ_PERMISSIONS }) {
+                requestHealthPermissions.launch(HealthConnectSync.ALL_PERMISSIONS)
+                return@launch
+            }
+            val apps = HealthConnectSync.listSourceApps(this@EditHabitActivity, source)
+            val packages = listOf("") + apps
+            val labels = listOf(anyAppLabel(source)) +
+                apps.map { HealthConnectSync.appLabel(this@EditHabitActivity, it) }
+            val builder = AlertDialog.Builder(this@EditHabitActivity)
+                .setTitle(R.string.hc_pick_source_app)
+                .setItems(labels.toTypedArray()) { dialog, which ->
+                    autoSourceApp = packages[which]
+                    populateAutoSource()
+                    dialog.dismiss()
+                }
+            if (apps.isEmpty()) builder.setMessage(R.string.hc_no_apps_found)
+            builder.show()
+        }
+    }
+
+    // ---- Pause ----
+
+    private fun formatDate(date: LocalDate): String =
+        java.time.LocalDate.of(date.year, date.month, date.day)
+            .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+
+    private fun populatePause() {
+        val today = getToday()
+        val pause = PauseLogic.currentOrNext(pauses, today)
+        val end = pause?.end
+        binding.pausePicker.text = when {
+            pause == null -> getString(R.string.pause_active)
+            pause.start > today -> getString(
+                R.string.pause_starts_on,
+                formatDate(pause.start),
+                if (end == null) "…" else formatDate(end)
+            )
+            end == null -> getString(R.string.pause_until_resumed)
+            else -> getString(R.string.pause_until_date, formatDate(end))
+        }
+    }
+
+    private fun showPausePicker() {
+        val today = getToday()
+        val isPaused = PauseLogic.currentOrNext(pauses, today) != null
+        val labels = mutableListOf(
+            getString(R.string.pause_option_today),
+            getString(R.string.pause_option_3_days),
+            getString(R.string.pause_option_week),
+            getString(R.string.pause_option_until_resumed),
+            getString(R.string.pause_option_pick_date)
+        )
+        if (isPaused) labels.add(getString(R.string.pause_option_resume))
+        AlertDialog.Builder(this)
+            .setTitle(R.string.pause)
+            .setMessage(R.string.pause_hint)
+            .setItems(labels.toTypedArray()) { dialog, which ->
+                dialog.dismiss()
+                when (which) {
+                    0 -> setPause(today, today)
+                    1 -> setPause(today, today.plus(2))
+                    2 -> setPause(today, today.plus(6))
+                    3 -> setPause(today, null)
+                    4 -> pickPauseEndDate(today)
+                    5 -> {
+                        pauses = PauseLogic.resume(pauses, today)
+                        populatePause()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun setPause(start: LocalDate, end: LocalDate?) {
+        pauses = PauseLogic.pause(pauses, start, end)
+        populatePause()
+    }
+
+    private fun pickPauseEndDate(today: LocalDate) {
+        val initial = today.plus(1)
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                val end = LocalDate(year, month + 1, day)
+                if (end >= today) setPause(today, end)
+            },
+            initial.year,
+            initial.month - 1,
+            initial.day
+        ).apply {
+            datePicker.minDate = java.time.LocalDate.of(today.year, today.month, today.day)
+                .atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        }.show()
     }
 }

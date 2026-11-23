@@ -70,7 +70,8 @@ class ScoreList {
         targetValue: Double,
         computedEntries: EntryList,
         from: LocalDate,
-        to: LocalDate
+        to: LocalDate,
+        targetAt: ((LocalDate) -> Double)? = null
     ) {
         map.clear()
         var rollingSum = 0.0
@@ -93,6 +94,7 @@ class ScoreList {
         for (i in values.indices) {
             val offset = values.size - i - 1
             val value = values[offset]
+            val dayTarget = targetAt?.invoke(from.plus(i)) ?: targetValue
             if (value != Entry.SKIP) {
                 window.addLast(value)
                 if (window.size > denominator) {
@@ -108,14 +110,14 @@ class ScoreList {
                     rollingSum += max(0, value)
                     val normalizedRollingSum = rollingSum / 1000
                     val percentageCompleted = if (!isAtMost) {
-                        if (targetValue > 0) {
-                            min(1.0, normalizedRollingSum / targetValue)
+                        if (dayTarget > 0) {
+                            min(1.0, normalizedRollingSum / dayTarget)
                         } else {
                             1.0
                         }
                     } else {
-                        if (targetValue > 0) {
-                            (1 - ((normalizedRollingSum - targetValue) / targetValue)).coerceIn(
+                        if (dayTarget > 0) {
+                            (1 - ((normalizedRollingSum - dayTarget) / dayTarget)).coerceIn(
                                 0.0,
                                 1.0
                             )

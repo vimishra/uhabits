@@ -27,6 +27,7 @@ import org.isoron.platform.time.setToday
 import org.isoron.uhabits.core.database.UnsupportedDatabaseVersionException
 import org.isoron.uhabits.core.reminders.ReminderScheduler
 import org.isoron.uhabits.core.ui.NotificationTray
+import org.isoron.uhabits.hc.HealthSyncWorker
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.DatabaseUtils
@@ -85,6 +86,8 @@ class HabitsApplication : Application() {
 
         notificationTray = component.notificationTray
         notificationTray.startListening()
+
+        if (!isTestMode()) HealthSyncWorker.schedulePeriodic(this)
 
         val taskRunner = component.taskRunner
         taskRunner.execute {

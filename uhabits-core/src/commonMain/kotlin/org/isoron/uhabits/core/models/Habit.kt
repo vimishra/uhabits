@@ -40,6 +40,10 @@ data class Habit(
     var type: HabitType = HabitType.YES_NO,
     var unit: String = "",
     var uuid: String? = null,
+    var autoSource: AutoSource = AutoSource.NONE,
+    var autoSourceApp: String = "",
+    var targetHistory: List<TargetChange> = emptyList(),
+    var pauses: List<PauseRange> = emptyList(),
     val computedEntries: EntryList,
     val originalEntries: EntryList,
     val scores: ScoreList,
@@ -73,9 +77,77 @@ data class Habit(
         return value != Entry.UNKNOWN
     }
 
+    /**
+     * Returns the target that was in effect on the given date. Days before the first
+     * recorded change use the earliest recorded value; with no history, the current target.
+     */
+    fun targetAt(date: LocalDate): Double {
+        if (targetHistory.isEmpty()) return targetValue
+        var result = targetHistory.first().value
+        for (change in targetHistory) {
+            if (change.from <= date) result = change.value else break
+        }
+        return result
+    }
+
+    /**
+     * Records that, starting on [from], the target becomes [newValue]. The previous target is
+     * preserved for all earlier days.
+     */
+    fun changeTarget(newValue: Double, from: LocalDate = getToday()) {
+        val history = targetHistory.toMutableList()
+        if (history.isEmpty()) {
+            if (newValue == targetValue) return
+            history.add(TargetChange(LocalDate(-40000), targetValue))
+        }
+        history.removeAll { it.from >= from }
+        if (history.lastOrNull()?.value != newValue) {
+            history.add(TargetChange(from, newValue))
+        }
+        targetHistory = history
+        targetValue = newValue
+    }
+
+    fun isPausedOn(date: LocalDate): Boolean = pauses.any { it.contains(date) }
+
+    fun isPausedToday(): Boolean = isPausedOn(getToday())
+
+    /** Pauses the habit starting on [start] until [end] (inclusive), or until resumed. */
+    fun pause(start: LocalDate = getToday(), end: LocalDate? = null) {
+        pauses = PauseLogic.pause(pauses, start, end)
+    }
+
+    /** Ends any pause covering [date] (and any scheduled later); active again from [date] on. */
+    fun resume(date: LocalDate = getToday()) {
+        pauses = PauseLogic.resume(pauses, date)
+    }
+
+    /**
+     * Original entries plus virtual SKIP entries on paused days that have no data. Days where
+     * the user did record something are left untouched.
+     */
+    private fun entriesWithPauses(): EntryList {
+        if (pauses.isEmpty()) return originalEntries
+        val result = EntryList()
+        originalEntries.getKnown().forEach { result.add(it) }
+        val today = getToday()
+        for (p in pauses) {
+            val end = p.end?.let { if (it > today) today else it } ?: today
+            var d = p.start
+            while (d <= end) {
+                val existing = result.get(d)
+                if (existing.value == Entry.UNKNOWN) {
+                    result.add(Entry(d, Entry.SKIP, existing.notes))
+                }
+                d = d.plus(1)
+            }
+        }
+        return result
+    }
+
     fun recompute() {
         computedEntries.recomputeFrom(
-            originalEntries = originalEntries,
+            originalEntries = entriesWithPauses(),
             frequency = frequency,
             isNumerical = isNumerical
         )
@@ -84,7 +156,8 @@ data class Habit(
             frequency = frequency,
             isNumerical = isNumerical,
             targetType = targetType,
-            targetValue = targetValue
+            targetValue = targetValue,
+            targetAt = ::targetAt
         )
 
         val today = getToday()
@@ -98,6 +171,7 @@ data class Habit(
             isNumerical = isNumerical,
             numericalHabitType = targetType,
             targetValue = targetValue,
+            targetAt = ::targetAt,
             computedEntries = computedEntries,
             from = from,
             to = to
@@ -129,6 +203,10 @@ data class Habit(
         this.type = other.type
         this.unit = other.unit
         this.uuid = other.uuid
+        this.autoSource = other.autoSource
+        this.autoSourceApp = other.autoSourceApp
+        this.targetHistory = other.targetHistory
+        this.pauses = other.pauses
     }
 
     override fun equals(other: Any?): Boolean {
@@ -150,6 +228,10 @@ data class Habit(
         if (type != other.type) return false
         if (unit != other.unit) return false
         if (uuid != other.uuid) return false
+        if (autoSource != other.autoSource) return false
+        if (autoSourceApp != other.autoSourceApp) return false
+        if (targetHistory != other.targetHistory) return false
+        if (pauses != other.pauses) return false
 
         return true
     }
@@ -170,6 +252,10 @@ data class Habit(
         result = 31 * result + type.value
         result = 31 * result + unit.hashCode()
         result = 31 * result + (uuid?.hashCode() ?: 0)
+        result = 31 * result + autoSource.hashCode()
+        result = 31 * result + autoSourceApp.hashCode()
+        result = 31 * result + targetHistory.hashCode()
+        result = 31 * result + pauses.hashCode()
         return result
     }
 }

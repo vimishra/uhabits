@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for the personal Health Connect fork. English only. -->
+<resources>
+    <string name="hc_rationale_title" translatable="false">Health data</string>
+    <string name="hc_rationale" translatable="false">This app reads your exercise sessions, mindfulness sessions and step counts from Health Connect, only to fill in the habits you have set to auto-track. The data stays on your phone and is never sent anywhere.</string>
+
+    <string name="hc_auto_track" translatable="false">Auto-track from Health Connect</string>
+    <string name="hc_source_none" translatable="false">Off</string>
+    <string name="hc_source_exercise" translatable="false">Exercise minutes (all activity types)</string>
+    <string name="hc_source_mindfulness" translatable="false">Mindfulness minutes</string>
+    <string name="hc_source_steps" translatable="false">Steps</string>
+    <string name="hc_source_app_any" translatable="false">All apps (Health Connect de-duplicates)</string>
+    <string name="hc_source_app_any_sessions" translatable="false">All apps (overlaps counted once)</string>
+    <string name="hc_source_app_format" translatable="false">From: %s</string>
+    <string name="hc_pick_source_app" translatable="false">Read data from</string>
+    <string name="hc_no_apps_found" translatable="false">No apps have written this kind of data in the last 30 days.</string>
+    <string name="hc_unavailable" translatable="false">Health Connect is not available on this device.</string>
+    <string name="hc_permission_denied" translatable="false">Health Connect permission was not granted, so this habit can\'t be filled in automatically.</string>
+    <string name="hc_unit_minutes" translatable="false">min</string>
+    <string name="hc_unit_steps" translatable="false">steps</string>
+
+    <string name="pause" translatable="false">Pause</string>
+    <string name="pause_active" translatable="false">Active</string>
+    <string name="pause_until_resumed" translatable="false">Paused until you resume</string>
+    <string name="pause_until_date" translatable="false">Paused until %s</string>
+    <string name="pause_starts_on" translatable="false">Pause scheduled: %1$s to %2$s</string>
+    <string name="pause_option_today" translatable="false">Today only</string>
+    <string name="pause_option_3_days" translatable="false">3 days</string>
+    <string name="pause_option_week" translatable="false">1 week</string>
+    <string name="pause_option_until_resumed" translatable="false">Until I resume</string>
+    <string name="pause_option_pick_date" translatable="false">Until a date…</string>
+    <string name="pause_option_resume" translatable="false">Resume now</string>
+    <string name="pause_hint" translatable="false">Paused days count as skipped: no reminders, no broken streaks. Anything you do log still counts.</string>
+</resources>

@@ -136,7 +136,8 @@ open class EntryList {
         frequency: Frequency,
         isNumerical: Boolean,
         targetType: NumericalHabitType,
-        targetValue: Double
+        targetValue: Double,
+        targetAt: ((LocalDate) -> Double)? = null
     ) {
         if (isNumerical) {
             val firstWeekday = getFirstWeekday()
@@ -146,9 +147,6 @@ open class EntryList {
                 denominator <= 7 -> 7
                 else -> 30
             }
-            val dailyTarget = targetValue / denominator
-            val baseTarget = if (denominator == periodLength) targetValue else dailyTarget * periodLength
-
             val periods = getKnown().groupBy {
                 periodStart(it.date, firstWeekday, frequency)
             }.toMutableMap()
@@ -157,7 +155,10 @@ open class EntryList {
             if (!periods.containsKey(todayPeriodStart)) {
                 periods[todayPeriodStart] = emptyList()
             }
-            for (entries in periods.values) {
+            for ((periodStartDate, entries) in periods) {
+                val periodTarget = targetAt?.invoke(periodStartDate) ?: targetValue
+                val dailyTarget = periodTarget / denominator
+                val baseTarget = if (denominator == periodLength) periodTarget else dailyTarget * periodLength
                 val periodSum = entries.sumOf { clampedValue(it) }
                 val skippedDays = entries.count { it.value == Entry.SKIP }
                 val target = max(0.0, baseTarget - dailyTarget * skippedDays)

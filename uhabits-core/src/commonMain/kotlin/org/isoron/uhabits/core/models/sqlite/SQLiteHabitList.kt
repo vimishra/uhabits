@@ -22,8 +22,10 @@ import me.tatarka.inject.annotations.Inject
 import org.isoron.platform.Synchronized
 import org.isoron.uhabits.core.database.HabitData
 import org.isoron.uhabits.core.database.HabitRepository
+import org.isoron.uhabits.core.models.AutoSource
 import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitAutomationCodec
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitMatcher
 import org.isoron.uhabits.core.models.HabitType
@@ -268,7 +270,11 @@ class SQLiteHabitList(private val modelFactory: ModelFactory) : HabitList() {
                 targetType = habit.targetType.value,
                 unit = habit.unit,
                 uuid = habit.uuid,
-                category = habit.category
+                category = habit.category,
+                autoSource = habit.autoSource.key,
+                autoSourceApp = habit.autoSourceApp,
+                targetHistory = HabitAutomationCodec.encodeTargets(habit.targetHistory),
+                pauses = HabitAutomationCodec.encodePauses(habit.pauses)
             )
         }
 
@@ -287,6 +293,10 @@ class SQLiteHabitList(private val modelFactory: ModelFactory) : HabitList() {
             habit.position = data.position
             habit.uuid = data.uuid
             habit.category = data.category
+            habit.autoSource = AutoSource.fromKey(data.autoSource)
+            habit.autoSourceApp = data.autoSourceApp
+            habit.targetHistory = HabitAutomationCodec.decodeTargets(data.targetHistory)
+            habit.pauses = HabitAutomationCodec.decodePauses(data.pauses)
             if (data.reminderHour != null && data.reminderMin != null) {
                 habit.reminder = Reminder(
                     data.reminderHour!!,

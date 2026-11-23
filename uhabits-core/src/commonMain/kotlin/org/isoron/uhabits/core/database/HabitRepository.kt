@@ -25,7 +25,11 @@ data class HabitData(
     var targetType: Int = 0,
     var unit: String = "",
     var uuid: String? = null,
-    var category: String = ""
+    var category: String = "",
+    var autoSource: String = "",
+    var autoSourceApp: String = "",
+    var targetHistory: String = "",
+    var pauses: String = ""
 )
 
 class HabitRepository(private val db: Database) {
@@ -33,7 +37,8 @@ class HabitRepository(private val db: Database) {
         db.prepareStatement(
             """SELECT id, name, description, question, freq_num, freq_den, color,
                position, reminder_hour, reminder_min, reminder_days, highlight,
-               archived, type, target_value, target_type, unit, uuid, category
+               archived, type, target_value, target_type, unit, uuid, category,
+               auto_source, auto_source_app, target_history, pauses
                FROM Habits ORDER BY position"""
         )
     }
@@ -42,8 +47,9 @@ class HabitRepository(private val db: Database) {
         db.prepareStatement(
             """INSERT INTO Habits(name, description, question, freq_num, freq_den,
                color, position, reminder_hour, reminder_min, reminder_days,
-               highlight, archived, type, target_value, target_type, unit, uuid, category)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+               highlight, archived, type, target_value, target_type, unit, uuid, category,
+               auto_source, auto_source_app, target_history, pauses)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         )
     }
 
@@ -51,8 +57,9 @@ class HabitRepository(private val db: Database) {
         db.prepareStatement(
             """INSERT INTO Habits(id, name, description, question, freq_num, freq_den,
                color, position, reminder_hour, reminder_min, reminder_days,
-               highlight, archived, type, target_value, target_type, unit, uuid, category)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+               highlight, archived, type, target_value, target_type, unit, uuid, category,
+               auto_source, auto_source_app, target_history, pauses)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         )
     }
 
@@ -61,7 +68,8 @@ class HabitRepository(private val db: Database) {
             """UPDATE Habits SET name=?, description=?, question=?, freq_num=?,
                freq_den=?, color=?, position=?, reminder_hour=?, reminder_min=?,
                reminder_days=?, highlight=?, archived=?, type=?, target_value=?,
-               target_type=?, unit=?, uuid=?, category=? WHERE id=?"""
+               target_type=?, unit=?, uuid=?, category=?, auto_source=?,
+               auto_source_app=?, target_history=?, pauses=? WHERE id=?"""
         )
     }
 
@@ -95,7 +103,7 @@ class HabitRepository(private val db: Database) {
     fun update(data: HabitData) {
         updateStmt.reset()
         bindForInsert(updateStmt, data)
-        updateStmt.bindLong(19, data.id!!)
+        updateStmt.bindLong(23, data.id!!)
         updateStmt.step()
     }
 
@@ -129,6 +137,10 @@ class HabitRepository(private val db: Database) {
         stmt.bindText(16 + o, data.unit)
         if (data.uuid != null) stmt.bindText(17 + o, data.uuid!!) else stmt.bindNull(17 + o)
         stmt.bindText(18 + o, data.category)
+        stmt.bindText(19 + o, data.autoSource)
+        stmt.bindText(20 + o, data.autoSourceApp)
+        stmt.bindText(21 + o, data.targetHistory)
+        stmt.bindText(22 + o, data.pauses)
     }
 
     private fun readRow(stmt: PreparedStatement): HabitData {
@@ -151,7 +163,11 @@ class HabitRepository(private val db: Database) {
             targetType = stmt.getInt(15),
             unit = stmt.getText(16),
             uuid = stmt.getTextOrNull(17),
-            category = stmt.getText(18)
+            category = stmt.getText(18),
+            autoSource = stmt.getTextOrNull(19) ?: "",
+            autoSourceApp = stmt.getTextOrNull(20) ?: "",
+            targetHistory = stmt.getTextOrNull(21) ?: "",
+            pauses = stmt.getTextOrNull(22) ?: ""
         )
     }
 }

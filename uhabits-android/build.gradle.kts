@@ -81,6 +81,9 @@ android {
 
         debug {
             enableUnitTestCoverage = true
+            // Personal fork: installs alongside the Play Store version of Loop.
+            applicationIdSuffix = ".hc"
+            versionNameSuffix = "-hc"
         }
     }
 
@@ -123,6 +126,8 @@ dependencies {
     implementation(libs.legacy.support.v4)
     implementation(libs.material)
     implementation(libs.documentfile)
+    implementation(libs.health.connect)
+    implementation(libs.work.runtime.ktx)
     implementation(libs.opencsv)
     implementation(libs.konfetti.xml)
     implementation(project(":uhabits-core"))

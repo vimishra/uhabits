@@ -47,7 +47,7 @@ class ReminderController(
         date: LocalDate,
         reminderTime: Long
     ) {
-        notificationTray.show(habit, date, reminderTime)
+        if (!habit.isPausedOn(date)) notificationTray.show(habit, date, reminderTime)
         reminderScheduler.scheduleAll()
     }
 

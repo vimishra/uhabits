@@ -228,6 +228,44 @@
             </FrameLayout>
 
 
+            <!-- Auto-track from Health Connect (numerical habits only) -->
+            <FrameLayout
+                android:id="@+id/autoTrackOuterBox"
+                style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:text="@string/hc_auto_track" />
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/autoSourcePicker"
+                        android:text="@string/hc_source_none"
+                        android:textColor="?attr/contrast100" />
+                    <View
+                        style="@style/FormDivider"
+                        android:id="@+id/autoSourceDivider" />
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/autoSourceAppPicker"
+                        android:text="@string/hc_source_app_any"
+                        android:textColor="?attr/contrast100" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Pause -->
+            <FrameLayout style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:text="@string/pause" />
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/pausePicker"
+                        android:text="@string/pause_active"
+                        android:textColor="?attr/contrast100" />
+                </LinearLayout>
+            </FrameLayout>
+
             <!-- Reminder -->
             <FrameLayout style="@style/FormOuterBox">
                 <LinearLayout style="@style/FormInnerBox">
