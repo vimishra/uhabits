@@ -28,6 +28,9 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    - Session sources: overlapping sessions are merged (interval union) so nothing is counted twice.
    - Steps: Health Connect `aggregateGroupByPeriod` (HC de-duplicates by app priority).
    - Sync never lowers an existing value (so manual totals typed in Loop are kept).
+   - Backfill: each habit gets a one-time 365-day sync (marker in pref `hc_backfilled`, keyed by
+     habit/source/app/history-access); regular syncs cover 7 days. `READ_HEALTH_DATA_HISTORY` is
+     requested once when picking a source; without it HC returns only ~30 days before first grant.
    - `uhabits-android/.../hc/HealthConnectSync.kt` (logic), `HealthSyncWorker.kt` (hourly
      WorkManager job + one-off on app open / habit save), `HealthPermissionsRationaleActivity.kt`.
 2. **Goal history**: `Habit.targetHistory` (list of `TargetChange(from, value)`);
@@ -37,10 +40,24 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    resumed). Paused days with no data become virtual SKIP entries in `Habit.recompute()`
    (not written to the DB). Reminders are suppressed in `ReminderController.onShowReminder`.
    UI: "Pause" row on the edit habit screen.
+   Streaks: paused days keep a streak alive but don't add to its length (`Streak.paused`,
+   `StreakList.recompute(isPaused)`); manual skips still count as upstream does.
+   Indicators: greyed name/ring in the list (`HabitCardState.paused`), "Paused until …" toolbar
+   subtitle on the habit screen, "N (Paused)" on the current streak bar (`Streak.pausedNow`).
 4. **Habit details zoom**: Settings → Habit details zoom (`pref_ui_zoom`, 85–175%). Applies only
    to `ShowHabitActivity` (the list stays at 100% so a full week fits). `zoom/UiZoom.kt` scales
    the density in `attachBaseContext` and recreates the screen on resume if the value changed.
    Another screen opts in by overriding `attachBaseContext` with `UiZoom.wrap(this, newBase)`.
+5. **Google Sans Flex** (Pixel system font; falls back to Roboto elsewhere): `android:fontFamily`
+   in the themes in `styles.xml`, `HcToolbar*` styles for toolbar titles, and `fonts/AppFonts.kt`
+   for canvas-drawn text (charts, rings, list header/numbers, calendar). List numbers use
+   `wdth 85` instead of sans-serif-condensed. Weights: titles and card headings 600, habit names
+   and the paused subtitle 500.
+6. **Ring view**: toolbar toggle next to "+" (`actionRingView`, pref `pref_ring_view`) swaps the
+   week list for `ring/RingViews.kt`: one progress ring per habit for today, 2 x 3 per page in
+   list order, swipe/dots between pages (pref `pref_ring_page`). Tap = toggle or number popup via
+   `ListHabitsBehavior`; long-press = habit screen. Data: `HabitCardListAdapter.habitsInListOrder()`,
+   `HabitCardState.targetValue` / `currentStreak` (`StreakList.current`).
 
 Core model code: `uhabits-core/.../core/models/HabitAutomation.kt` (AutoSource, TargetChange,
 PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/main/migrations/27.sql`
@@ -50,8 +67,12 @@ PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/mai
 ## Status
 
 - Builds and runs on the Pixel. Verified on device: permission flow, Health Connect sync
-  (exercise, mindfulness, steps), zoom.
-- Not yet tested on device: pause UI, target history.
+  (exercise, mindfulness, steps), backfill, pause (dialog, skip days, streaks, indicators),
+  zoom, fonts, ring view.
+- Not yet tested on device: target history (raising a goal), ring-view taps.
+- The phone is the user's daily device and is often locked or in another app. Before any
+  `adb shell input`, check `dumpsys activity activities | grep topResumedActivity` shows
+  `org.isoron.uhabits.hc`, in the same command as the tap.
 - Background commands run one at a time (`Dispatchers.IO.limitedParallelism(1)` in
   `HabitsApplicationComponent`); repositories share cached prepared statements, so don't
   make them concurrent again.
