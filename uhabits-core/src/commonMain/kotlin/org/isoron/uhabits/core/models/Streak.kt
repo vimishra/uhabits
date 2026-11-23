@@ -22,7 +22,9 @@ import org.isoron.platform.time.LocalDate
 
 data class Streak(
     val start: LocalDate,
-    val end: LocalDate
+    val end: LocalDate,
+    /** Paused days inside the streak: they keep it alive but don't add to its length. */
+    val paused: Int = 0
 ) {
     fun compareLonger(other: Streak): Int {
         return if (length != other.length) {
@@ -37,5 +39,5 @@ data class Streak(
     }
 
     val length: Int
-        get() = start.daysUntil(end) + 1
+        get() = start.daysUntil(end) + 1 - paused
 }

@@ -78,4 +78,60 @@ class StreakListTest : BaseUnitTest() {
         assertEquals(1, best.size)
         assertEquals(3, best[0].length)
     }
+
+    private fun pausedHabit(vararg yesDaysAgo: Int, pause: PauseRange): Habit {
+        habit.originalEntries.clear()
+        for (d in yesDaysAgo) habit.originalEntries.add(Entry(today.minus(d), Entry.YES_MANUAL))
+        habit.pauses = listOf(pause)
+        habit.recompute()
+        return habit
+    }
+
+    @Test
+    fun testGetBest_pausedDaysKeepStreakButDontAddLength() {
+        // Done two days in a row, then paused from today on.
+        pausedHabit(2, 1, pause = PauseRange(today, today.plus(2)))
+        val best = habit.streaks.getBest(10)
+        assertEquals(1, best.size)
+        assertEquals(today.minus(2), best[0].start)
+        assertEquals(today, best[0].end)
+        assertEquals(2, best[0].length)
+    }
+
+    @Test
+    fun testGetBest_pauseInsideStreak() {
+        // Done, paused for two days, done again: one streak of two real days.
+        pausedHabit(3, 0, pause = PauseRange(today.minus(2), today.minus(1)))
+        val best = habit.streaks.getBest(10)
+        assertEquals(1, best.size)
+        assertEquals(today.minus(3), best[0].start)
+        assertEquals(2, best[0].length)
+    }
+
+    @Test
+    fun testGetBest_onlyPausedDaysIsNotAStreak() {
+        pausedHabit(pause = PauseRange(today.minus(3), null))
+        assertEquals(0, habit.streaks.getBest(10).size)
+    }
+
+    @Test
+    fun testGetBest_streakDoesNotStartWithPausedDays() {
+        // Paused for three days, done on the middle one: streak starts on the day it was done.
+        pausedHabit(1, pause = PauseRange(today.minus(2), today))
+        val best = habit.streaks.getBest(10)
+        assertEquals(1, best.size)
+        assertEquals(today.minus(1), best[0].start)
+        assertEquals(1, best[0].length)
+    }
+
+    @Test
+    fun testGetBest_manualSkipStillCountsOutsidePause() {
+        habit.originalEntries.clear()
+        habit.originalEntries.add(Entry(today, Entry.YES_MANUAL))
+        habit.originalEntries.add(Entry(today.minus(1), Entry.SKIP))
+        habit.originalEntries.add(Entry(today.minus(2), Entry.YES_MANUAL))
+        habit.pauses = emptyList()
+        habit.recompute()
+        assertEquals(3, habit.streaks.getBest(10)[0].length)
+    }
 }

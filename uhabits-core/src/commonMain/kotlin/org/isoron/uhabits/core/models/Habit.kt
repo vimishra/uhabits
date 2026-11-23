@@ -183,7 +183,8 @@ data class Habit(
             to,
             isNumerical,
             targetValue,
-            targetType
+            targetType,
+            isPaused = { date -> pauses.any { it.contains(date) } }
         )
     }
 

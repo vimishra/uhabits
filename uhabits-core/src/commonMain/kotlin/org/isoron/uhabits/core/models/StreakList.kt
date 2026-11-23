@@ -41,32 +41,43 @@ class StreakList {
         to: LocalDate,
         isNumerical: Boolean,
         targetValue: Double,
-        targetType: NumericalHabitType
+        targetType: NumericalHabitType,
+        isPaused: (LocalDate) -> Boolean = { false }
     ) {
         list.clear()
         val today = getToday()
-        val dates = computedEntries
+        val entries = computedEntries
             .getByInterval(from, to)
             .filter {
                 !it.date.isNewerThan(today) && it.completed
             }
-            .map { it.date }
-            .toTypedArray()
 
-        if (dates.isEmpty()) return
+        if (entries.isEmpty()) return
 
-        var begin = dates[0]
-        var end = dates[0]
-        for (i in 1 until dates.size) {
-            val current = dates[i]
-            if (current == begin.minus(1)) {
-                begin = current
+        // Entries are newest first; collect runs of consecutive days.
+        var run = mutableListOf(entries[0])
+        for (i in 1 until entries.size) {
+            val current = entries[i]
+            if (current.date == run.last().date.minus(1)) {
+                run.add(current)
             } else {
-                list.add(Streak(begin, end))
-                begin = current
-                end = current
+                addRun(run, isPaused)
+                run = mutableListOf(current)
             }
         }
-        list.add(Streak(begin, end))
+        addRun(run, isPaused)
+    }
+
+    /**
+     * Adds a streak for [run] (newest first). Skipped days inside a pause keep the streak alive
+     * but don't count towards its length; a streak can't begin with them, and a run made only of
+     * paused days isn't a streak.
+     */
+    private fun addRun(run: List<Entry>, isPaused: (LocalDate) -> Boolean) {
+        fun pausedSkip(e: Entry) = e.value == Entry.SKIP && isPaused(e.date)
+        val oldestReal = run.indexOfLast { !pausedSkip(it) }
+        if (oldestReal < 0) return
+        val kept = run.subList(0, oldestReal + 1)
+        list.add(Streak(kept.last().date, kept.first().date, kept.count { pausedSkip(it) }))
     }
 }
