@@ -160,6 +160,20 @@
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
+        <!-- Fork: rings widget (first 4 or 6 habits, today's progress). -->
+        <receiver
+            android:name="org.isoron.uhabits.ring.RingsWidgetProvider"
+            android:exported="true"
+            android:label="@string/rings_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_rings_info" />
+        </receiver>
+
         <receiver
             android:name=".widgets.HistoryWidgetProvider"
             android:exported="true"

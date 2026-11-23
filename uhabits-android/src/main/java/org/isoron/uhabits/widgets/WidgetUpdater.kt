@@ -33,6 +33,7 @@ import org.isoron.uhabits.core.preferences.WidgetPreferences
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.inject.AppContext
 import org.isoron.uhabits.intents.IntentScheduler
+import org.isoron.uhabits.ring.RingsWidgetProvider
 
 /**
  * A WidgetUpdater listens to the commands being executed by the application and
@@ -86,6 +87,9 @@ class WidgetUpdater(
             updateWidgets(modifiedHabitId, StreakWidgetProvider::class.java)
             updateWidgets(modifiedHabitId, FrequencyWidgetProvider::class.java)
             updateWidgets(modifiedHabitId, TargetWidgetProvider::class.java)
+            // Fork: the rings widget shows several habits without a per-widget habit list,
+            // so it is always refreshed.
+            updateWidgets(null, RingsWidgetProvider::class.java)
         }
     }
 

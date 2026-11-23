@@ -31,6 +31,8 @@
     <string name="pause_option_pick_date" translatable="false">Until a date…</string>
     <string name="pause_option_resume" translatable="false">Resume now</string>
     <string name="ring_view" translatable="false">Ring view</string>
+    <string name="rings_widget_label" translatable="false">Habit rings</string>
+    <string name="rings_widget_description" translatable="false">Today\'s progress for your first 4 or 6 habits. Tap a ring to log it, a name to open the habit.</string>
     <string name="week_view" translatable="false">Week view</string>
     <string name="ring_streak" translatable="false">%d day streak</string>
     <string name="ring_paused" translatable="false">Paused</string>

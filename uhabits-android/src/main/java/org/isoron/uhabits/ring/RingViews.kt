@@ -34,6 +34,7 @@ import org.isoron.uhabits.core.models.ModelObservable
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardState
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
+import org.isoron.uhabits.core.ui.views.Theme
 import org.isoron.uhabits.fonts.AppFonts
 import org.isoron.uhabits.utils.InterfaceUtils.getFontAwesome
 import org.isoron.uhabits.utils.applyBottomInset
@@ -49,6 +50,33 @@ private const val COLUMNS = 2
 private const val PREF_RING_VIEW = "pref_ring_view"
 private const val PREF_RING_PAGE = "pref_ring_page"
 private const val FA_PAUSE = ""
+
+/**
+ * Mixes [color] toward white by at least [minLift], and further (in 5% steps) until it has
+ * [minContrast] against the opaque [background], so dark hues stay readable on dark surfaces.
+ * Indigo-to-purple hues (220-300 degrees) look darker than their measured contrast, so they get
+ * at least [violetLift].
+ */
+fun liftForContrast(
+    color: Int,
+    background: Int,
+    minLift: Float,
+    minContrast: Double,
+    violetLift: Float = minLift
+): Int {
+    val hsl = FloatArray(3)
+    androidx.core.graphics.ColorUtils.colorToHSL(color, hsl)
+    var amount = if (hsl[0] in 220f..300f) maxOf(minLift, violetLift) else minLift
+    while (true) {
+        val lifted = androidx.core.graphics.ColorUtils.blendARGB(color, android.graphics.Color.WHITE, amount)
+        if (amount >= 0.9f ||
+            androidx.core.graphics.ColorUtils.calculateContrast(lifted, background) >= minContrast
+        ) {
+            return lifted
+        }
+        amount += 0.05f
+    }
+}
 
 /** Whether the habit list shows rings instead of the week grid. Stored per device. */
 object RingMode {
@@ -73,6 +101,22 @@ class RingTileView(context: Context) : View(context) {
             contentDescription = value?.name
             invalidate()
         }
+
+    /** Draw only the ring (no name / streak text), sized to the whole view. Used by the widget. */
+    var ringOnly = false
+
+    /** Palette to use instead of the app's current light/dark theme. Used by the widget. */
+    var themeOverride: Theme? = null
+
+    /** Color for the "/ goal" line, instead of the theme's contrast80. Used by the widget. */
+    var goalTextColor: Int? = null
+
+    /** Paused / not-done color and empty-track color, instead of the theme's. Used by the widget. */
+    var mutedColor: Int? = null
+    var trackColor: Int? = null
+
+    /** Adjusts habit colors (e.g. lifts them for contrast on a dark widget). Identity by default. */
+    var colorAdjust: (Int) -> Int = { it }
 
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -99,6 +143,7 @@ class RingTileView(context: Context) : View(context) {
     private fun ringGeometry(): Triple<Float, Float, Float> {
         val w = width.toFloat()
         val h = height.toFloat()
+        if (ringOnly) return Triple(w / 2, h / 2, min(w, h) - dp(2f))
         val diameter = 0.8f * min(w - 2 * pad, h - 2 * pad - textBlock)
         val block = diameter + pad * 0.6f + textBlock
         val top = (h - block) / 2
@@ -109,10 +154,10 @@ class RingTileView(context: Context) : View(context) {
         val s = state ?: return
         val w = width.toFloat()
 
-        val muted = sres.getColor(R.attr.contrast60)
+        val muted = mutedColor ?: sres.getColor(R.attr.contrast60)
         val color = when {
             s.paused || s.archived -> muted
-            else -> currentTheme().color(s.color).toInt()
+            else -> colorAdjust((themeOverride ?: currentTheme()).color(s.color).toInt())
         }
 
         val (cx, cy, diameter) = ringGeometry()
@@ -122,7 +167,7 @@ class RingTileView(context: Context) : View(context) {
         rect.set(cx - r, cy - r, cx + r, cy + r)
 
         ringPaint.strokeWidth = stroke
-        ringPaint.color = sres.getColor(R.attr.contrast20)
+        ringPaint.color = trackColor ?: sres.getColor(R.attr.contrast20)
         canvas.drawArc(rect, 0f, 360f, false, ringPaint)
         val progress = progressOf(s)
         if (progress > 0f) {
@@ -131,6 +176,7 @@ class RingTileView(context: Context) : View(context) {
         }
 
         drawCenter(canvas, s, color, muted, cx, cy, diameter)
+        if (ringOnly) return
 
         // Name.
         textPaint.typeface = AppFonts.medium
@@ -174,7 +220,7 @@ class RingTileView(context: Context) : View(context) {
             canvas.drawText(value.toShortString(), cx, cy + textPaint.textSize * 0.2f, textPaint)
             textPaint.typeface = AppFonts.regular
             textPaint.textSize = min(diameter * 0.1f, sp(13f))
-            textPaint.color = sres.getColor(R.attr.contrast80)
+            textPaint.color = goalTextColor ?: sres.getColor(R.attr.contrast80)
             val goal = "/ ${s.targetValue.toShortString()} ${s.unit}".trim()
             canvas.drawText(goal, cx, cy + diameter * 0.25f, textPaint)
         } else {

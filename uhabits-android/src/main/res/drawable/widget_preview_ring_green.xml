@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fork: sample ring for the rings widget preview. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:pathData="M24,3a21,21 0,1 1,-0.01 0" android:strokeColor="#26FFFFFF" android:strokeWidth="2.6" />
+    <path android:pathData="M24,3a21,21 0,1 1,-0.01 0" android:strokeColor="#6AAA6D" android:strokeWidth="2.6" />
+</vector>

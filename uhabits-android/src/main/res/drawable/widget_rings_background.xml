@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fork: rings widget background, matching Loop's widgets (grey_850, 18dp corners); opacity is set at runtime. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/grey_850" />
+    <corners android:radius="18dp" />
+</shape>
