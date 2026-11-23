@@ -138,7 +138,9 @@ abstract class HabitsApplicationComponent(
     @Provides
     open fun taskRunner(): TaskRunner = CoroutineTaskRunner(
         mainDispatcher = Dispatchers.Main,
-        ioDispatcher = Dispatchers.IO
+        // One at a time: repositories share cached prepared statements, so concurrent commands
+        // (e.g. a Health Connect sync writing several days at once) corrupt each other's bindings.
+        ioDispatcher = Dispatchers.IO.limitedParallelism(1)
     )
 
     @AppScope

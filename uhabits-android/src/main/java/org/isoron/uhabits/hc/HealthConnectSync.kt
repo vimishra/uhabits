@@ -6,11 +6,14 @@
  * Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  */
+@file:OptIn(ExperimentalMindfulnessSessionApi::class)
+
 package org.isoron.uhabits.hc
 
 import android.content.Context
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.MindfulnessSessionRecord
