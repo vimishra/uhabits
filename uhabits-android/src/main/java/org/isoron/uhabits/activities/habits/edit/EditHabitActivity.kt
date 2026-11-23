@@ -24,12 +24,16 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Resources
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Html
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.format.DateFormat
+import android.text.style.StyleSpan
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -601,9 +605,18 @@ class EditHabitActivity : AppCompatActivity() {
             getString(R.string.pause_option_pick_date)
         )
         if (isPaused) labels.add(getString(R.string.pause_option_resume))
+        // AlertDialog hides the item list when a message is set, so the hint goes in the title.
+        val pad = (24 * resources.displayMetrics.density).toInt()
+        val title = TextView(this).apply {
+            val heading = getString(R.string.pause)
+            text = SpannableStringBuilder(heading + "\n" + getString(R.string.pause_hint)).apply {
+                setSpan(StyleSpan(Typeface.BOLD), 0, heading.length, 0)
+            }
+            textSize = 16f
+            setPadding(pad, pad, pad, pad / 3)
+        }
         AlertDialog.Builder(this)
-            .setTitle(R.string.pause)
-            .setMessage(R.string.pause_hint)
+            .setCustomTitle(title)
             .setItems(labels.toTypedArray()) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
