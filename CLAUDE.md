@@ -58,8 +58,11 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    list order, swipe/dots between pages (pref `pref_ring_page`). Tap = toggle or number popup via
    `ListHabitsBehavior`; long-press = habit screen. Data: `HabitCardListAdapter.habitsInListOrder()`,
    `HabitCardState.targetValue` / `currentStreak` (`StreakList.current`).
-   Style: no cards, ring ~34% of screen width, 5.5% line; names 17sp, streak 13sp in the main
-   text color (grey is reserved for paused). Tapping the name/streak opens the habit.
+   Tile (`RingTileView`): no card, ring ~34% of screen width, 5.5% line. Inside: habit icon
+   (or first letter) and "N days" (orange flame when the current streak equals `bestStreak`,
+   2+ days). Below: name (17sp) and `progressText()` (13sp; grey only when paused). Done today =
+   solid disc in the habit color, content in white/near-black via `contrastingInk()`, no ring
+   arcs drawn (they leave a seam). Tapping the name/progress line opens the habit.
 7. **"Habit rings" widget**: `ring/RingsWidgetProvider.kt` + `layout/widget_rings.xml` (6 cells,
    unused ones hidden) + `xml/widget_rings_info.xml` (`previewLayout` = sample habits). First 4
    (2 x 2) or 6 (3 x 2, width >= 250dp) habits in list order via `ListHabitsPresenter`; rings
@@ -68,11 +71,16 @@ adb install -r --user 0 uhabits-android/build/outputs/apk/debug/uhabits-android-
    widget opacity, `WidgetTheme` palette); colors pass through `liftForContrast` (>= 25%,
    >= 40% for hues 220-300, then up to 4.5:1). Refreshed via a line in `WidgetUpdater`;
    registered in the manifest. A widget can only be placed by the user, not via adb.
+8. **Habit icons**: `Habit.icon` (symbol name; empty = first letter), "Icon" row on the edit
+   screen with a grid picker. `ring/HabitIcons.kt` lists the picker icons; drawables are
+   `res/drawable/hc_icon_*.xml`, Material Symbols Rounded (filled, Apache 2.0), converted from
+   `https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsrounded/<name>/fill1/24px.svg`
+   (viewBox 0 -960 960 960 -> `group translateY=960`). To add one: fetch, convert, add to the list.
 
 Core model code: `uhabits-core/.../core/models/HabitAutomation.kt` (AutoSource, TargetChange,
-PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/main/migrations/27.sql`
-(columns auto_source, auto_source_app, target_history, pauses), `HabitRepository`,
-`SQLiteHabitList.copyFrom/copyTo`, `LoopDBImporter`. DATABASE_VERSION = 27.
+PauseRange, codecs, PauseLogic). Persistence: migrations `uhabits-core/assets/main/migrations/27.sql`
+(columns auto_source, auto_source_app, target_history, pauses) and `28.sql` (icon), `HabitRepository`,
+`SQLiteHabitList.copyFrom/copyTo`, `LoopDBImporter`. DATABASE_VERSION = 28.
 
 ## Status
 
@@ -82,7 +90,8 @@ PauseRange, codecs, PauseLogic). Persistence: migration `uhabits-core/assets/mai
 - Not yet tested on device: target history (raising a goal), ring-view and widget taps.
 - The phone is the user's daily device and is often locked or in another app. Before any
   `adb shell input`, check `dumpsys activity activities | grep topResumedActivity` shows
-  `org.isoron.uhabits.hc`, in the same command as the tap.
+  `org.isoron.uhabits.hc`, in the same command as the tap. The list screen may appear as
+  `org.isoron.uhabits.MainActivity` (launcher alias) or `...activities.habits.list.ListHabitsActivity`.
 - Background commands run one at a time (`Dispatchers.IO.limitedParallelism(1)` in
   `HabitsApplicationComponent`); repositories share cached prepared statements, so don't
   make them concurrent again.
