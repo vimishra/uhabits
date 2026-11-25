@@ -103,6 +103,19 @@ class SQLiteHabitListTest : BaseUnitTest() {
     }
 
     @Test
+    fun testIcon_isPersisted() = dbTest {
+        val habit = modelFactory.buildHabit()
+        habit.name = "With icon"
+        habit.icon = "self_improvement"
+        habitList.add(habit)
+        assertEquals("self_improvement", repository.findAll().find { it.id == habit.id }!!.icon)
+
+        habit.icon = "menu_book"
+        habitList.update(habit)
+        assertEquals("menu_book", repository.findAll().find { it.id == habit.id }!!.icon)
+    }
+
+    @Test
     fun testAdd_withoutId() = dbTest {
         val habit = modelFactory.buildHabit()
         habit.name = "Hello world"

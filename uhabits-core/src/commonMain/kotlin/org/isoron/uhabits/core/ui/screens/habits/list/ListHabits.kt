@@ -70,7 +70,9 @@ object ListHabitsPresenter {
                     category = habit.category,
                     paused = habit.pauses.any { it.contains(today) },
                     targetValue = habit.targetAt(today),
-                    currentStreak = habit.streaks.current(today)
+                    currentStreak = habit.streaks.current(today),
+                    icon = habit.icon,
+                    bestStreak = habit.streaks.getBest(1).firstOrNull()?.length ?: 0
                 )
             )
         }
@@ -103,5 +105,9 @@ data class HabitCardState(
     /** Today's goal for numerical habits (respects goal history). */
     val targetValue: Double = 0.0,
     /** Length of the streak still alive today (see StreakList.current). */
-    val currentStreak: Int = 0
+    val currentStreak: Int = 0,
+    /** Icon name (empty = use the name's first letter). */
+    val icon: String = "",
+    /** Length of the longest streak ever (paused days excluded). */
+    val bestStreak: Int = 0
 )

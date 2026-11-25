@@ -125,6 +125,22 @@
                 </FrameLayout>
             </LinearLayout>
 
+            <!-- Icon (fork) -->
+            <FrameLayout style="@style/FormOuterBox">
+                <LinearLayout style="@style/FormInnerBox">
+                    <TextView
+                        style="@style/FormLabel"
+                        android:text="@string/habit_icon" />
+                    <TextView
+                        style="@style/FormDropdown"
+                        android:id="@+id/iconPicker"
+                        android:drawablePadding="12dp"
+                        android:gravity="center_vertical"
+                        android:text="@string/habit_icon_none"
+                        android:textColor="?attr/contrast100" />
+                </LinearLayout>
+            </FrameLayout>
+
             <!-- Habit Question -->
             <FrameLayout style="@style/FormOuterBox">
                 <LinearLayout style="@style/FormInnerBox">

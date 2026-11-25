@@ -31,7 +31,12 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.style.StyleSpan
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
+import android.widget.GridView
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
@@ -71,6 +76,7 @@ import org.isoron.uhabits.core.models.WeekdayList
 import org.isoron.uhabits.databinding.ActivityEditHabitBinding
 import org.isoron.uhabits.hc.HealthConnectSync
 import org.isoron.uhabits.hc.HealthSyncWorker
+import org.isoron.uhabits.ring.HabitIcons
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.applyRootViewInsets
 import org.isoron.uhabits.utils.applyToolbarInsets
@@ -110,6 +116,7 @@ class EditHabitActivity : AppCompatActivity() {
     var autoSource = AutoSource.NONE
     var autoSourceApp = ""
     var pauses: List<PauseRange> = emptyList()
+    var icon = ""
 
     private val uiScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -160,6 +167,7 @@ class EditHabitActivity : AppCompatActivity() {
             autoSource = habit.autoSource
             autoSourceApp = habit.autoSourceApp
             pauses = habit.pauses
+            icon = habit.icon
         } else {
             habitType = HabitType.fromInt(intent.getIntExtra("habitType", HabitType.YES_NO.value))
         }
@@ -176,6 +184,7 @@ class EditHabitActivity : AppCompatActivity() {
             autoSource = AutoSource.fromKey(state.getString("autoSource"))
             autoSourceApp = state.getString("autoSourceApp") ?: ""
             pauses = HabitAutomationCodec.decodePauses(state.getString("pauses"))
+            icon = state.getString("icon") ?: ""
         }
 
         updateColors()
@@ -262,6 +271,9 @@ class EditHabitActivity : AppCompatActivity() {
 
         populatePause()
         binding.pausePicker.setOnClickListener { showPausePicker() }
+
+        populateIcon()
+        binding.iconPicker.setOnClickListener { showIconPicker() }
 
         populateReminder()
         binding.reminderTimePicker.setOnClickListener {
@@ -351,6 +363,7 @@ class EditHabitActivity : AppCompatActivity() {
             habit.autoSourceApp = ""
         }
         habit.pauses = pauses
+        habit.icon = icon
         habit.type = habitType
 
         val command = if (habitId >= 0) {
@@ -427,6 +440,70 @@ class EditHabitActivity : AppCompatActivity() {
             window.statusBarColor = androidColor
             binding.toolbar.setBackgroundColor(androidColor)
         }
+        if (::binding.isInitialized) populateIcon()
+    }
+
+    /** Fork: shows the chosen icon in the habit's color, or "First letter" when none is set. */
+    private fun populateIcon() {
+        val res = HabitIcons.drawableFor(icon)
+        val size = (28 * resources.displayMetrics.density).toInt()
+        val drawable = res?.let { getDrawable(it)?.mutate() }?.apply {
+            setTint(androidColor)
+            setBounds(0, 0, size, size)
+        }
+        binding.iconPicker.setCompoundDrawablesRelative(drawable, null, null, null)
+        binding.iconPicker.setText(if (res == null) R.string.habit_icon_none else R.string.habit_icon_chosen)
+    }
+
+    /** Fork: grid of all icons, plus "First letter" to clear the icon. */
+    private fun showIconPicker() {
+        val pad = (12 * resources.displayMetrics.density).toInt()
+        val size = (40 * resources.displayMetrics.density).toInt()
+        val entries = listOf("" to 0) + HabitIcons.all
+        var dialog: AlertDialog? = null
+        val grid = GridView(this).apply {
+            numColumns = 5
+            stretchMode = GridView.STRETCH_COLUMN_WIDTH
+            verticalSpacing = pad / 2
+            setPadding(pad, pad, pad, pad)
+            adapter = object : BaseAdapter() {
+                override fun getCount() = entries.size
+                override fun getItem(position: Int) = entries[position]
+                override fun getItemId(position: Int) = position.toLong()
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+                    val (name, res) = entries[position]
+                    if (name.isEmpty()) {
+                        return (convertView as? TextView ?: TextView(this@EditHabitActivity)).apply {
+                            text = binding.nameInput.text.trim().take(1).toString().uppercase().ifEmpty { "A" }
+                            textSize = 22f
+                            gravity = android.view.Gravity.CENTER
+                            setTextColor(androidColor)
+                            minimumHeight = size + pad / 2
+                            contentDescription = getString(R.string.habit_icon_none)
+                        }
+                    }
+                    return ImageView(this@EditHabitActivity).apply {
+                        setImageResource(res)
+                        imageTintList = ColorStateList.valueOf(androidColor)
+                        layoutParams = AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, size + pad / 2)
+                        setPadding(pad / 3, pad / 3, pad / 3, pad / 3)
+                        alpha = if (name == icon) 1f else 0.75f
+                        if (name == icon) setBackgroundResource(R.drawable.hc_icon_selected_bg)
+                        contentDescription = name.replace('_', ' ')
+                    }
+                }
+            }
+            setOnItemClickListener { _, _, position, _ ->
+                icon = entries[position].first
+                populateIcon()
+                dialog?.dismiss()
+            }
+        }
+        dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.habit_icon)
+            .setView(grid)
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun getFormattedValidationError(@StringRes resId: Int): Spanned {
@@ -449,6 +526,7 @@ class EditHabitActivity : AppCompatActivity() {
             putString("autoSource", autoSource.key)
             putString("autoSourceApp", autoSourceApp)
             putString("pauses", HabitAutomationCodec.encodePauses(pauses))
+            putString("icon", icon)
         }
     }
 

@@ -68,7 +68,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "",
                     targetValue = 0.0,
-                    currentStreak = 1
+                    currentStreak = 1,
+                    bestStreak = 1
                 ),
                 HabitCardState(
                     id = 1,
@@ -83,7 +84,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "",
                     targetValue = 0.0,
-                    currentStreak = 1
+                    currentStreak = 1,
+                    bestStreak = 1
                 ),
                 HabitCardState(
                     id = 0,
@@ -98,7 +100,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "",
                     targetValue = 0.0,
-                    currentStreak = 1
+                    currentStreak = 1,
+                    bestStreak = 1
                 ),
                 HabitCardState(
                     id = 4,
@@ -113,7 +116,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "",
                     targetValue = 2.0,
-                    currentStreak = 0
+                    currentStreak = 0,
+                    bestStreak = 0
                 ),
                 HabitCardState(
                     id = 5,
@@ -128,7 +132,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "",
                     targetValue = 0.0,
-                    currentStreak = 0
+                    currentStreak = 0,
+                    bestStreak = 0
                 ),
                 HabitCardState(
                     id = 6,
@@ -143,7 +148,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "Books",
                     targetValue = 0.0,
-                    currentStreak = 0
+                    currentStreak = 0,
+                    bestStreak = 0
                 ),
                 HabitCardState(
                     id = 7,
@@ -158,7 +164,8 @@ class ListHabitsPresenterTest : BaseUnitTest() {
                     notes = listOf("", "", ""),
                     category = "Mind",
                     targetValue = 0.0,
-                    currentStreak = 0
+                    currentStreak = 0,
+                    bestStreak = 0
                 )
             ),
             hasHabits = true,

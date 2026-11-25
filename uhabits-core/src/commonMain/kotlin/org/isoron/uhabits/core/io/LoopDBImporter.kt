@@ -124,7 +124,7 @@ class LoopDBImporter(
             "SELECT id, name, description, question, freq_num, freq_den, color, " +
                 "position, reminder_hour, reminder_min, reminder_days, highlight, " +
                 "archived, type, target_value, target_type, unit, uuid, category, " +
-                "auto_source, auto_source_app, target_history, pauses " +
+                "auto_source, auto_source_app, target_history, pauses, icon " +
                 "FROM Habits ORDER BY position"
         ) { stmt ->
             result.add(
@@ -151,7 +151,8 @@ class LoopDBImporter(
                     autoSource = stmt.getTextOrNull(19) ?: "",
                     autoSourceApp = stmt.getTextOrNull(20) ?: "",
                     targetHistory = stmt.getTextOrNull(21) ?: "",
-                    pauses = stmt.getTextOrNull(22) ?: ""
+                    pauses = stmt.getTextOrNull(22) ?: "",
+                    icon = stmt.getTextOrNull(23) ?: ""
                 )
             )
         }

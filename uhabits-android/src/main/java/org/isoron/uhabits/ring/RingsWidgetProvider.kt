@@ -133,7 +133,6 @@ class RingsWidgetProvider : AppWidgetProvider() {
             val lift = { c: Int -> liftForContrast(c, card, MIN_LIFT, MIN_CONTRAST, VIOLET_LIFT) }
             // Grey means paused, as in the app; white for everything else.
             val muted = themed.getColor(R.color.grey_500)
-            val soft = themed.getColor(R.color.white_aa)
             val text = themed.getColor(R.color.white)
             val today = getToday()
 
@@ -151,20 +150,13 @@ class RingsWidgetProvider : AppWidgetProvider() {
                     return@forEachIndexed
                 }
                 views.setViewVisibility(cell.cell, View.VISIBLE)
-                views.setImageViewBitmap(cell.image, renderRing(themed, s, ringPx, soft, muted, lift))
+                views.setImageViewBitmap(cell.image, renderRing(themed, s, ringPx, muted, lift))
                 views.setContentDescription(cell.image, s.name)
 
                 val color = if (s.paused || s.archived) muted else lift(theme.color(s.color).toInt())
                 views.setTextViewText(cell.name, s.name)
                 views.setTextColor(cell.name, color)
-                views.setTextViewText(
-                    cell.streak,
-                    if (s.paused) {
-                        context.getString(R.string.ring_paused)
-                    } else {
-                        context.getString(R.string.ring_streak, s.currentStreak)
-                    }
-                )
+                views.setTextViewText(cell.streak, progressText(context, s))
                 views.setTextColor(cell.streak, if (s.paused) muted else text)
 
                 val logIntent = if (habit.isNumerical) {
@@ -182,14 +174,12 @@ class RingsWidgetProvider : AppWidgetProvider() {
             context: Context,
             state: HabitCardState,
             size: Int,
-            goalColor: Int,
             muted: Int,
             lift: (Int) -> Int
         ): Bitmap {
             val view = RingTileView(context).apply {
                 ringOnly = true
                 themeOverride = WidgetTheme()
-                goalTextColor = goalColor
                 mutedColor = muted
                 trackColor = 0x26FFFFFF // white at 15%: visible on the grey card
                 colorAdjust = lift

@@ -44,6 +44,8 @@ data class Habit(
     var autoSourceApp: String = "",
     var targetHistory: List<TargetChange> = emptyList(),
     var pauses: List<PauseRange> = emptyList(),
+    /** Fork: icon name from the app's icon set; empty = show the name's first letter. */
+    var icon: String = "",
     val computedEntries: EntryList,
     val originalEntries: EntryList,
     val scores: ScoreList,
@@ -208,6 +210,7 @@ data class Habit(
         this.autoSourceApp = other.autoSourceApp
         this.targetHistory = other.targetHistory
         this.pauses = other.pauses
+        this.icon = other.icon
     }
 
     override fun equals(other: Any?): Boolean {
@@ -233,6 +236,7 @@ data class Habit(
         if (autoSourceApp != other.autoSourceApp) return false
         if (targetHistory != other.targetHistory) return false
         if (pauses != other.pauses) return false
+        if (icon != other.icon) return false
 
         return true
     }
@@ -257,6 +261,7 @@ data class Habit(
         result = 31 * result + autoSourceApp.hashCode()
         result = 31 * result + targetHistory.hashCode()
         result = 31 * result + pauses.hashCode()
+        result = 31 * result + icon.hashCode()
         return result
     }
 }

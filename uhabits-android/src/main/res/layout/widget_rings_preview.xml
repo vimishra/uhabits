@@ -30,12 +30,24 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <ImageView
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/widget_preview_ring_blue" />
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/widget_preview_ring_blue" />
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/hc_icon_self_improvement"
+                        android:tint="#5298DD" />
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -50,7 +62,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="google-sans-flex"
-                    android:text="12 day streak"
+                    android:text="15 / 10 mins"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -61,12 +73,24 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <ImageView
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/widget_preview_ring_purple" />
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/widget_preview_ring_purple" />
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/hc_icon_fitness_center"
+                        android:tint="#C187D0" />
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -81,7 +105,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="google-sans-flex"
-                    android:text="4 day streak"
+                    android:text="20 / 30 mins"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -99,12 +123,24 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <ImageView
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/widget_preview_ring_green" />
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/widget_preview_ring_green" />
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/hc_icon_menu_book"
+                        android:tint="#6AAA6D" />
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -119,7 +155,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="google-sans-flex"
-                    android:text="7 day streak"
+                    android:text="Done"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -130,12 +166,24 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
-                <ImageView
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/widget_preview_ring_lime" />
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/widget_preview_ring_lime" />
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/hc_icon_directions_walk"
+                        android:tint="#9DC671" />
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -150,7 +198,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="google-sans-flex"
-                    android:text="2 day streak"
+                    android:text="2.4k / 8k steps"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp" />
             </LinearLayout>

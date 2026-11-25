@@ -274,7 +274,8 @@ class SQLiteHabitList(private val modelFactory: ModelFactory) : HabitList() {
                 autoSource = habit.autoSource.key,
                 autoSourceApp = habit.autoSourceApp,
                 targetHistory = HabitAutomationCodec.encodeTargets(habit.targetHistory),
-                pauses = HabitAutomationCodec.encodePauses(habit.pauses)
+                pauses = HabitAutomationCodec.encodePauses(habit.pauses),
+                icon = habit.icon
             )
         }
 
@@ -297,6 +298,7 @@ class SQLiteHabitList(private val modelFactory: ModelFactory) : HabitList() {
             habit.autoSourceApp = data.autoSourceApp
             habit.targetHistory = HabitAutomationCodec.decodeTargets(data.targetHistory)
             habit.pauses = HabitAutomationCodec.decodePauses(data.pauses)
+            habit.icon = data.icon
             if (data.reminderHour != null && data.reminderMin != null) {
                 habit.reminder = Reminder(
                     data.reminderHour!!,

@@ -36,7 +36,6 @@ import org.isoron.uhabits.core.ui.screens.habits.list.HabitCardState
 import org.isoron.uhabits.core.ui.screens.habits.list.ListHabitsBehavior
 import org.isoron.uhabits.core.ui.views.Theme
 import org.isoron.uhabits.fonts.AppFonts
-import org.isoron.uhabits.utils.InterfaceUtils.getFontAwesome
 import org.isoron.uhabits.utils.applyBottomInset
 import org.isoron.uhabits.utils.currentTheme
 import org.isoron.uhabits.utils.dp
@@ -46,10 +45,10 @@ import kotlin.math.ceil
 import kotlin.math.min
 
 private const val PER_PAGE = 6
+private const val FLAME_COLOR = 0xFFFF9800.toInt() // orange: a personal best, not a habit color
 private const val COLUMNS = 2
 private const val PREF_RING_VIEW = "pref_ring_view"
 private const val PREF_RING_PAGE = "pref_ring_page"
-private const val FA_PAUSE = ""
 
 /**
  * Mixes [color] toward white by at least [minLift], and further (in 5% steps) until it has
@@ -76,6 +75,39 @@ fun liftForContrast(
         }
         amount += 0.05f
     }
+}
+
+/**
+ * Today's progress as a short line: "15 / 10 mins" for measurable habits, "Done" / "Not yet" /
+ * "Skipped" for yes/no habits, "Paused" while paused with nothing logged.
+ */
+fun progressText(context: Context, s: HabitCardState): String {
+    val today = s.checkmarks.firstOrNull() ?: Entry.UNKNOWN
+    if (s.paused && (today == Entry.SKIP || today <= 0)) return context.getString(R.string.ring_paused)
+    if (s.isNumerical) {
+        val value = (if (today > 0) today else 0) / 1000.0
+        return context.getString(
+            R.string.ring_progress,
+            value.toShortString(),
+            s.targetValue.toShortString(),
+            s.unit
+        ).trim()
+    }
+    return context.getString(
+        when (today) {
+            Entry.YES_MANUAL, Entry.YES_AUTO -> R.string.ring_done
+            Entry.SKIP -> R.string.ring_skipped
+            else -> R.string.ring_not_yet
+        }
+    )
+}
+
+/** White or near-black, whichever reads better on [background]. */
+fun contrastingInk(background: Int): Int {
+    val ink = 0xFF1A1A1A.toInt()
+    val white = android.graphics.Color.WHITE
+    val cu = androidx.core.graphics.ColorUtils::calculateContrast
+    return if (cu(white, background or 0xFF000000.toInt()) >= cu(ink, background or 0xFF000000.toInt())) white else ink
 }
 
 /** Whether the habit list shows rings instead of the week grid. Stored per device. */
@@ -108,9 +140,6 @@ class RingTileView(context: Context) : View(context) {
     /** Palette to use instead of the app's current light/dark theme. Used by the widget. */
     var themeOverride: Theme? = null
 
-    /** Color for the "/ goal" line, instead of the theme's contrast80. Used by the widget. */
-    var goalTextColor: Int? = null
-
     /** Paused / not-done color and empty-track color, instead of the theme's. Used by the widget. */
     var mutedColor: Int? = null
     var trackColor: Int? = null
@@ -126,6 +155,7 @@ class RingTileView(context: Context) : View(context) {
         textAlign = Paint.Align.CENTER
     }
     private val rect = RectF()
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
 
     private val pad = dp(10f)
     private val nameSize = sp(17f)
@@ -166,16 +196,29 @@ class RingTileView(context: Context) : View(context) {
         val r = diameter / 2 - stroke / 2
         rect.set(cx - r, cy - r, cx + r, cy + r)
 
-        ringPaint.strokeWidth = stroke
-        ringPaint.color = trackColor ?: sres.getColor(R.attr.contrast20)
-        canvas.drawArc(rect, 0f, 360f, false, ringPaint)
-        val progress = progressOf(s)
-        if (progress > 0f) {
-            ringPaint.color = color
-            canvas.drawArc(rect, -90f, 360f * progress, false, ringPaint)
+        // Done today: a solid disc in the habit color, with the icon and label in white or near-black,
+        // whichever contrasts better (pastel dark-theme colors get dark content).
+        val done = isDoneToday(s)
+        val contentColor = if (done) contrastingInk(color) else color
+        val flameColor = if (done) contentColor else FLAME_COLOR
+        if (done) {
+            fillPaint.color = color
+            canvas.drawCircle(cx, cy, r + stroke / 2, fillPaint)
         }
 
-        drawCenter(canvas, s, color, muted, cx, cy, diameter)
+        // The disc already shows completion; drawing the ring over it leaves a hairline seam.
+        if (!done) {
+            ringPaint.strokeWidth = stroke
+            ringPaint.color = trackColor ?: sres.getColor(R.attr.contrast20)
+            canvas.drawArc(rect, 0f, 360f, false, ringPaint)
+            val progress = progressOf(s)
+            if (progress > 0f) {
+                ringPaint.color = color
+                canvas.drawArc(rect, -90f, 360f * progress, false, ringPaint)
+            }
+        }
+
+        drawCenter(canvas, s, contentColor, flameColor, cx, cy, diameter)
         if (ringOnly) return
 
         // Name.
@@ -186,59 +229,82 @@ class RingTileView(context: Context) : View(context) {
         val nameY = cy + diameter / 2 + pad * 0.6f + nameSize
         canvas.drawText(name.toString(), cx, nameY, textPaint)
 
-        // Streak / paused line. Grey is reserved for paused habits; streaks use the main text color.
+        // Progress line ("15 / 10 mins", "Done", "Paused"). Grey is reserved for paused habits.
         textPaint.typeface = AppFonts.regular
         textPaint.textSize = subSize
         textPaint.color = if (s.paused) muted else sres.getColor(R.attr.contrast100)
-        val sub = if (s.paused) {
-            context.getString(R.string.ring_paused)
-        } else {
-            context.getString(R.string.ring_streak, s.currentStreak)
-        }
-        canvas.drawText(sub, cx, nameY + subSize * 1.45f, textPaint)
+        canvas.drawText(progressText(context, s), cx, nameY + subSize * 1.45f, textPaint)
     }
 
+    /** Inside the ring: the habit's icon (or first letter), with the current streak below it. */
     private fun drawCenter(
         canvas: Canvas,
         s: HabitCardState,
         color: Int,
-        muted: Int,
+        flameColor: Int,
         cx: Float,
         cy: Float,
         diameter: Float
     ) {
-        val today = s.checkmarks.firstOrNull() ?: Entry.UNKNOWN
-        if (isPausedAndUnlogged(s)) {
-            drawIcon(canvas, FA_PAUSE, muted, cx, cy, diameter * 0.26f)
-            return
-        }
-        if (s.isNumerical) {
-            val value = (if (today > 0) today else 0) / 1000.0
-            textPaint.typeface = AppFonts.bold
-            textPaint.textSize = diameter * 0.30f
-            textPaint.color = color
-            canvas.drawText(value.toShortString(), cx, cy + textPaint.textSize * 0.2f, textPaint)
-            textPaint.typeface = AppFonts.regular
-            textPaint.textSize = min(diameter * 0.1f, sp(13f))
-            textPaint.color = goalTextColor ?: sres.getColor(R.attr.contrast80)
-            val goal = "/ ${s.targetValue.toShortString()} ${s.unit}".trim()
-            canvas.drawText(goal, cx, cy + diameter * 0.25f, textPaint)
+        val iconSize = diameter * 0.42f
+        val iconCy = cy - diameter * 0.07f
+        val res = HabitIcons.drawableFor(s.icon)
+        val drawable = res?.let { context.getDrawable(it)?.mutate() }
+        if (drawable != null) {
+            drawable.setTint(color)
+            val half = iconSize / 2
+            drawable.setBounds(
+                (cx - half).toInt(),
+                (iconCy - half).toInt(),
+                (cx + half).toInt(),
+                (iconCy + half).toInt()
+            )
+            drawable.draw(canvas)
         } else {
-            val (icon, iconColor) = when (today) {
-                Entry.YES_MANUAL, Entry.YES_AUTO -> context.getString(R.string.fa_check) to color
-                Entry.SKIP -> context.getString(R.string.fa_skipped) to color
-                else -> context.getString(R.string.fa_times) to muted
-            }
-            drawIcon(canvas, icon, iconColor, cx, cy, diameter * 0.3f)
+            textPaint.typeface = AppFonts.bold
+            textPaint.textSize = iconSize * 0.85f
+            textPaint.color = color
+            val letter = s.name.trim().take(1).uppercase().ifEmpty { "?" }
+            canvas.drawText(letter, cx, iconCy + textPaint.textSize * 0.36f, textPaint)
+        }
+
+        // Streak: "3 days", with a flame when it is the habit's longest streak so far (2+ days).
+        textPaint.typeface = AppFonts.medium
+        textPaint.textSize = diameter * 0.11f
+        textPaint.color = color
+        val label = resources.getQuantityString(R.plurals.ring_days, s.currentStreak, s.currentStreak)
+        val baseline = cy + diameter * 0.32f
+        if (isPersonalBest(s)) {
+            val flame = context.getDrawable(R.drawable.hc_icon_local_fire_department)?.mutate()
+            val flameSize = textPaint.textSize * 1.15f
+            val gap = textPaint.textSize * 0.15f
+            val textWidth = textPaint.measureText(label)
+            val left = cx - (flameSize + gap + textWidth) / 2
+            flame?.setTint(flameColor)
+            val top = baseline - textPaint.textSize * 0.95f
+            flame?.setBounds(left.toInt(), top.toInt(), (left + flameSize).toInt(), (top + flameSize).toInt())
+            flame?.draw(canvas)
+            textPaint.textAlign = Paint.Align.LEFT
+            canvas.drawText(label, left + flameSize + gap, baseline, textPaint)
+            textPaint.textAlign = Paint.Align.CENTER
+        } else {
+            canvas.drawText(label, cx, baseline, textPaint)
         }
     }
 
-    private fun drawIcon(canvas: Canvas, icon: String, color: Int, cx: Float, cy: Float, size: Float) {
-        textPaint.typeface = getFontAwesome(context)
-        textPaint.textSize = size
-        textPaint.color = color
-        canvas.drawText(icon, cx, cy + size * 0.35f, textPaint)
+    /** Today's goal met: a check for yes/no habits, the target reached for measurable ones. */
+    private fun isDoneToday(s: HabitCardState): Boolean {
+        val today = s.checkmarks.firstOrNull() ?: Entry.UNKNOWN
+        return if (s.isNumerical) {
+            today > 0 && s.completed.firstOrNull() == true
+        } else {
+            today == Entry.YES_MANUAL || today == Entry.YES_AUTO
+        }
     }
+
+    /** Current streak is the longest so far (and at least 2 days, so new habits don't qualify). */
+    private fun isPersonalBest(s: HabitCardState): Boolean =
+        !s.paused && s.currentStreak >= 2 && s.currentStreak >= s.bestStreak
 
     /** Paused today with nothing logged: the day is a virtual skip, shown as a pause. */
     private fun isPausedAndUnlogged(s: HabitCardState): Boolean {
